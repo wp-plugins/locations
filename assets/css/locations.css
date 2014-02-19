@@ -1,0 +1,80 @@
+.locations .location
+{
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	display: inline-block;
+	width: 230px;
+	margin: 0 20px 25px 0;
+	padding: 25px;
+	overflow: hidden;
+}
+
+.locations .location.hasPhoto
+{
+	padding: 170px 20px 25px;
+    position: relative;
+}
+
+.locations .location h3
+{
+	text-transform: none;
+	font-size: 1.2em;
+	font-weight: bold;
+	letter-spacing: normal;
+	line-height: normal;
+	margin: 0 0 10px;
+}
+.locations .location .location-photo
+{
+	background-size: cover;
+    border: 1px solid #DDDDDD;
+    height: 150px;
+    left: 0;
+    margin-bottom: 10px;
+    max-width: 100%;
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+.locations .location .location-photo img
+{
+}
+
+.locations .location .address
+{
+    margin-bottom: 15px;
+    padding-left: 1px;
+}
+
+.locations .location .map_link
+{
+	margin-top: 20px;
+}
+
+.locations .location .map_link .divider
+{
+	color: #ccc;
+	margin: 0 2px;
+}
+
+.locations .location .phone-wrapper,
+.locations .location .fax-wrapper
+{
+	margin-bottom: 4px;
+	border-bottom: 1px solid #eee;
+}
+
+.locations .location .phone-wrapper strong,
+.locations .location .fax-wrapper strong
+{
+	display: inline-block;
+	width: 65px;
+}
+
+.locations .location .phone-wrapper .num,
+.locations .location .fax-wrapper .num
+{
+	text-align: right;
+	float: right;
+}
