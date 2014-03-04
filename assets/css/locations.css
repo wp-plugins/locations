@@ -3,7 +3,7 @@
 	border: 1px solid #ddd;
 	border-radius: 8px;
 	display: inline-block;
-	width: 230px;
+	min-width: 230px;
 	margin: 0 20px 25px 0;
 	padding: 25px;
 	overflow: hidden;
@@ -77,4 +77,8 @@
 {
 	text-align: right;
 	float: right;
+}
+
+.locations .location .locations_gmap{
+	margin: 10px 0;
 }

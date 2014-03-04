@@ -15,8 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with a Gold Plugin.  If not, see <http://www.gnu.org/licenses/>.
 */
-if (!class_exists('GoldPlugins_CustomPostType')):
-
+if(!class_exists("GoldPlugins_CustomPostType")):
 	class GoldPlugins_CustomPostType
 	{
 		var $customFields = false;
@@ -30,7 +29,7 @@ if (!class_exists('GoldPlugins_CustomPostType')):
 			$singular = ucwords($postType['name']);
 			$plural = isset($postType['plural']) ? ucwords($postType['plural']) : $singular . 's';
 
-			$this->customPostTypeName = sanitize_title($singular);
+			$this->customPostTypeName = strtolower($singular);
 			$this->customPostTypeSingular = $singular;
 			$this->customPostTypePlural = $plural;
 
@@ -57,16 +56,14 @@ if (!class_exists('GoldPlugins_CustomPostType')):
 					'publicly_queryable' => true,
 					'show_ui' => true, 
 					'query_var' => true,
-					'rewrite' => array( 'slug' => $postType['slug'], 'with_front' => (strlen($postType['slug'])>0) ? false : true),
+					'rewrite' => true,
 					'capability_type' => 'post',
 					'hierarchical' => false,
-					'menu_position' => 20,
 					'supports' => array('title','editor','author','thumbnail','excerpt','comments','custom-fields'),
 				); 
 				$this->customPostTypeArgs = $args;
 		
-				// register hooks
-				add_action( 'init', array( &$this, 'registerPostTypes' ), 0 );
+				$this->registerPostTypes();
 			}
 		}
 
@@ -187,7 +184,8 @@ if (!class_exists('GoldPlugins_CustomPostType')):
 		* Save the new Custom Fields values
 		*/
 		function saveCustomFields( $post_id, $post ) {
-			if ( !wp_verify_nonce( $_POST[ 'my-custom-fields_wpnonce' ], 'my-custom-fields' ) )
+			//RWG: 1.30.14 - added isset($_POST[ 'my-custom-fields_wpnonce' ]) to prevent undefined index notices on new item creation
+			if ( isset($_POST[ 'my-custom-fields_wpnonce' ]) && !wp_verify_nonce( $_POST[ 'my-custom-fields_wpnonce' ], 'my-custom-fields' ) )
 				return;
 			if ( !current_user_can( 'edit_post', $post_id ) )
 				return;
@@ -202,7 +200,7 @@ if (!class_exists('GoldPlugins_CustomPostType')):
 					}
 				}
 			}
-		}
+		}	
 
 		function __construct($postType, $customFields = false, $removeDefaultCustomFields = false)
 		{
@@ -211,9 +209,8 @@ if (!class_exists('GoldPlugins_CustomPostType')):
 			if ($customFields)
 			{
 				$this->setupCustomFields($customFields);
-			}				
+			}		
 		}
 	}
-	
-endif; // class_exists
+endif;
 ?>

@@ -4,7 +4,7 @@ Plugin Name: Locations
 Plugin Script: locations.php
 Plugin URI: http://goldplugins.com/our-plugins/locations/
 Description: List your business' locations and show a map for each one.
-Version: 1.0
+Version: 1.1
 Author: GoldPlugins
 Author URI: http://goldplugins.com/
 
@@ -61,6 +61,7 @@ class LocationsPlugin extends GoldPlugin
 		$customFields[] = array('name' => 'fax', 'title' => 'Fax', 'description' => 'Fax number of this location, example: 919-555-3344', 'type' => 'text');
 		$customFields[] = array('name' => 'email', 'title' => 'Email', 'description' => 'Email address for this location, example: shopname@ourbrand.com', 'type' => 'text');
 		$customFields[] = array('name' => 'website_url', 'title' => 'Website', 'description' => 'Website URL address for this location, example: http://goldplugins.com', 'type' => 'text');
+		$customFields[] = array('name' => 'show_map', 'title' => 'Show Map', 'description' => 'If checked, a Google Map with a marker at the above address will be displayed.', 'type' => 'checkbox');
 		$this->add_custom_post_type($postType, $customFields);
 		
 	}
@@ -77,7 +78,7 @@ class LocationsPlugin extends GoldPlugin
 	function add_stylesheets_and_scripts()
 	{
 		$cssUrl = plugins_url( 'assets/css/locations.css' , __FILE__ );
-		$this->add_stylesheet('wp-banners-css',  $cssUrl);
+		$this->add_stylesheet('wp-locations-css',  $cssUrl);
 		
 /* 		$jsUrl = plugins_url( 'assets/js/wp-banners.js' , __FILE__ );
 		$this->add_script('wp-banners-js',  $jsUrl);
@@ -146,6 +147,7 @@ class LocationsPlugin extends GoldPlugin
 		$fax = $this->get_option_value($loc->ID, 'fax','');
 		$email = $this->get_option_value($loc->ID, 'email','');
 		$website_url = $this->get_option_value($loc->ID, 'website_url','');
+		$add_map = $this->get_option_value($loc->ID, 'show_map', false);
 				
 		// start building the HTML for this location
 		$html = '';
@@ -173,8 +175,14 @@ class LocationsPlugin extends GoldPlugin
 		}				
 		
 		// add links for Map, Directions, Email, and Website
-		$html .= $this->build_links_html($street_address, $street_address_line_2, $city, $state, $zipcode, $email, $website_url);
-
+		$html .= $this->build_links_html($street_address, $street_address_line_2, $city, $state, $zipcode, $email, $website_url, $add_map);
+		
+		if($add_map){
+			$address = htmlentities($street_address . ", " . $street_address_line_2 . ", " . $city . ", " . $state . ", " . $zipcode);
+			
+			$html .= '<div class="locations_gmap"><iframe width="425" height="350" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://maps.google.com/maps?f=q&amp;source=s_q&amp;hl=en&amp;geocode=&amp;q=' . $address . '&amp;t=h&amp;ie=UTF8&amp;hq=&amp;hnear=' . $address . '&amp;z=14&amp;output=embed"></iframe></div>';
+		}
+		
 		// close the location div and return the finished HTML
 		$html .= '</div>'; // <!--.location-->		
 		return $html;
@@ -213,7 +221,7 @@ class LocationsPlugin extends GoldPlugin
 		return $html;
 	}
 	
-	private function build_links_html($street_address, $street_address_line_2, $city, $state, $zipcode, $email = '', $website_url = '')
+	private function build_links_html($street_address, $street_address_line_2, $city, $state, $zipcode, $email = '', $website_url = '', $add_map = false)
 	{
 		// generate the Google Maps links
 		if (strlen($street_address_line_2) > 0) {
@@ -223,11 +231,13 @@ class LocationsPlugin extends GoldPlugin
 		}
 		$google_maps_url = 'https://maps.google.com/?q=' . urlencode($full_address);
 		$google_maps_directions_url = 'https://maps.google.com/maps?saddr=current+location&daddr=' . urlencode($full_address);
-
+		
 		// generate the HTML for the actual links
 		$html = '<div class="map_link">';
-			$html .= '<a href="' . $google_maps_url. '">Map</a>'; 
-			$html .= ' <span class="divider">|</span> ';
+			if(!$add_map){
+				$html .= '<a href="' . $google_maps_url. '">Map</a>'; 
+				$html .= ' <span class="divider">|</span> ';
+			}
 			$html .= '<a href="' . $google_maps_directions_url. '">Directions</a>';
 			if (strlen($email) > 1) {
 				$html .= ' <span class="divider">|</span> ';
@@ -236,6 +246,10 @@ class LocationsPlugin extends GoldPlugin
 			if (strlen($website_url) > 1) {
 				$html .= ' <span class="divider">|</span> ';
 				$html .= '<a class="website" href="' . $website_url . '">Website</a>';
+			}
+			if($add_map){
+				$html .= ' <span class="divider">|</span> ';
+				$html .= '<a href="' . $google_maps_url. '">View Full Map</a>'; 
 			}
 		$html .= '</div>'; // <!--.map_link-->
 		

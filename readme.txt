@@ -3,7 +3,7 @@ Contributors: ghuger, richardgabriel
 Tags: locations, business locations, business maps, maps, business address map
 Requires at least: 3.0.1
 Tested up to: 3.8.1
-Stable tag: 1.0
+Stable tag: 1.1
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -11,7 +11,17 @@ Locations is a simple-to-use plugin for adding Locations with Maps to your WordP
 
 == Description ==
 
-List your business' locations and show a map for each one.
+Locations is a simple-to-use plugin for adding business Locations with Maps to your WordPress Theme using a shortcode.
+
+Need to add your business' Location to your website, and looking for an easy way to do so?  Locations is right for you!  Locations provides and easy to use interface for adding your businesses locations, including their phone number, fax number, two line address, city, state, zip code, and contact e-mail address.  Then you can use Locations' simple shortcode to insert your location to any page or post needed on your website.
+
+Users will see your location information formatted in an easy to use layout.  We provide links for Directions - which will start from your current location on location-enabled devices - sending an email, or contacting you via phone.  Locations includes the option to display a Google Map pinpointed on your current location, too!
+
+Locations includes default CSS that makes your business location information readable and understandable.  Locations works both on Mobile and Desktop browsers!
+
+Have multiple business locations?  Locations allows you to output as many locations, each with their own map, on any page as you want!  Use one shortcode to list them all, or individual shortcodes to call out specific business locations!  With Locations, you can update Phone Numbers, E-Mail Addresses, and other contact information from the ease of your WordPress Dashboard - you won't have to track down each Page and Post and make the same edit!
+
+Most customers on the internet are looking for your businesses location - start using Locations today to give them the information they need!
 
 == Installation ==
 
@@ -34,6 +44,17 @@ Adding a New Location is easy!  There are 3 ways to start adding a new location
 **New Location Content**
 
 You have a few things to pay attention to:
+
+- Street Address: This is the first line of your street address.
+- Street Address (line 2): This is the second line of your street address - use this if you have an apartment or suite number.
+- City: This is the City you are located in.
+- State: This is the State you are located in.
+- Zipcode: This is the Zipcode of your location.
+- Phone: This is the Primary phone number.  This will be displayed, if set.
+- Fax: This is the Primary fax number.  This will be displayed, if set.
+- Email: This is the e-mail address you wish to have linked.  If set, this will be displayed to the public.
+- Website: This is the web address you want linked to.  If set, this will be displayed to the public.
+- Show Map: Check this box if you want a Google Map displayed with your location.
 
 = Editing a Location =
 
@@ -59,20 +80,29 @@ You have a few things to pay attention to:
 
 == Frequently Asked Questions ==
 
-= I love you!  Are you single? =
+= How Do I Display A Map With My Location? =
 
-Nope.  Sorry, ladies.
+Easy!  Just check the Show Map checkbox under your Location's information.
+
+= How Do I Hide Fields From Display? =
+
+We only display fields that have data - to hide a field, just keep it blank!
 
 == Screenshots ==
 
 1. This is the Add New Location Page.
 2. This is the List of Locations - from here you can Edit or Delete a Location.
+3. This is a demo of a Location from the user side, with a map displayed.
 
 == Changelog ==
+
+= 1.1 =
+* Feature: Adds option to output Google Map image next to location.
+* Fix: Address issue that was preventing CSS from loading.
 
 = 1.0 =
 * Released!
 
 == Upgrade Notice ==
 
-* 1.0: Released!
+* 1.1: Upgrade Available!
