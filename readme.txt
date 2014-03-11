@@ -3,7 +3,7 @@ Contributors: ghuger, richardgabriel
 Tags: locations, business locations, business maps, maps, business address map
 Requires at least: 3.0.1
 Tested up to: 3.8.1
-Stable tag: 1.1
+Stable tag: 1.1.1
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -88,6 +88,11 @@ Easy!  Just check the Show Map checkbox under your Location's information.
 
 We only display fields that have data - to hide a field, just keep it blank!
 
+= How Do I Obtain an API Key for Google Maps? =
+
+First, this only matters if you are using the Store Locator built into the Pro Version!  If you aren't, don't worry about it!  OK - to get an API key, follow Google's instructions, here:
+https://developers.google.com/maps/documentation/javascript/tutorial#api_key
+
 == Screenshots ==
 
 1. This is the Add New Location Page.
@@ -95,6 +100,9 @@ We only display fields that have data - to hide a field, just keep it blank!
 3. This is a demo of a Location from the user side, with a map displayed.
 
 == Changelog ==
+
+= 1.1.1 =
+* Fix: Address rewrite function issue upon upgrading to version 1.1
 
 = 1.1 =
 * Feature: Adds option to output Google Map image next to location.
@@ -105,4 +113,4 @@ We only display fields that have data - to hide a field, just keep it blank!
 
 == Upgrade Notice ==
 
-* 1.1: Upgrade Available!
+* 1.1.1: Fix Available!

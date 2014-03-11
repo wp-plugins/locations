@@ -4,7 +4,7 @@ Plugin Name: Locations
 Plugin Script: locations.php
 Plugin URI: http://goldplugins.com/our-plugins/locations/
 Description: List your business' locations and show a map for each one.
-Version: 1.1
+Version: 1.1.1
 Author: GoldPlugins
 Author URI: http://goldplugins.com/
 
@@ -25,6 +25,8 @@ along with Locations.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 require_once('gold-framework/plugin-base.php');
+//require_once('lib/lib.php');
+//require_once('lib/locations_options.php');
 
 class LocationsPlugin extends GoldPlugin
 {
@@ -33,7 +35,8 @@ class LocationsPlugin extends GoldPlugin
 		$this->create_post_types();
 		$this->add_hooks();
 		$this->add_stylesheets_and_scripts();
-		$this->add_settings_page('Locations', 'Locations');		
+		//$this->add_settings_page('Locations', 'Locations');		
+		
 		parent::__construct();
 	}
 	
@@ -87,7 +90,8 @@ class LocationsPlugin extends GoldPlugin
 	}
 	
 	function add_settings_page()
-	{
+	{			
+		$locations_options = new locationsOptions();
 	}
 	
 	/* Shortcodes */

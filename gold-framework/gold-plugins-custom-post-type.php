@@ -56,14 +56,14 @@ if(!class_exists("GoldPlugins_CustomPostType")):
 					'publicly_queryable' => true,
 					'show_ui' => true, 
 					'query_var' => true,
-					'rewrite' => true,
+					'rewrite' => array( 'slug' => $postType['slug'], 'with_front' => (strlen($postType['slug'])>0) ? false : true),
 					'capability_type' => 'post',
 					'hierarchical' => false,
 					'supports' => array('title','editor','author','thumbnail','excerpt','comments','custom-fields'),
 				); 
 				$this->customPostTypeArgs = $args;
 		
-				$this->registerPostTypes();
+				add_action( 'init', array( &$this, 'registerPostTypes' ), 0 ); 
 			}
 		}
 
