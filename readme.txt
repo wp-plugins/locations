@@ -2,8 +2,8 @@
 Contributors: ghuger, richardgabriel
 Tags: locations, business locations, business maps, maps, business address map
 Requires at least: 3.0.1
-Tested up to: 3.8.1
-Stable tag: 1.1.1
+Tested up to: 3.9.1
+Stable tag: 1.2
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -23,6 +23,9 @@ Have multiple business locations?  Locations allows you to output as many locati
 
 Most customers on the internet are looking for your businesses location - start using Locations today to give them the information they need!
 
+= Upgrade To Pro =
+Need a Store Locator? Upgrade to Locations Pro and you'll unlock the Store Locator feature.
+
 == Installation ==
 
 This section describes how to install the plugin and get it working.
@@ -30,6 +33,11 @@ This section describes how to install the plugin and get it working.
 1. Upload the contents of `/locations/` to the `/wp-content/plugins/` directory
 2. Activate Easy Locations through the 'Plugins' menu in WordPress
 3. Visit this address for information on how to configure the plugin: http://goldplugins.com/documentation/locations-documentation/
+
+**Please Note**
+You will want to get a free Google Maps API key, so that the Locations plugin can use their geocoder to convert the addresses of your locations into Latitude and Longitude coordinates. You can get an API key from Google for free at this URL: https://developers.google.com/maps/documentation/javascript/tutorial#api_key
+
+Once you have the API key, you should update the Locations plugin's settings to include it.
 
 = Adding a New Location =
 
@@ -101,6 +109,9 @@ https://developers.google.com/maps/documentation/javascript/tutorial#api_key
 
 == Changelog ==
 
+= 1.2 =
+* Adds a Settings page, Google Maps Geocoder, and optional Pro features.
+
 = 1.1.1 =
 * Fix: Address rewrite function issue upon upgrading to version 1.1
 
@@ -113,4 +124,4 @@ https://developers.google.com/maps/documentation/javascript/tutorial#api_key
 
 == Upgrade Notice ==
 
-* 1.1.1: Fix Available!
+* 1.2: Update Available!

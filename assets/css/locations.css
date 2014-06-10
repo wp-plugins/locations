@@ -82,3 +82,22 @@
 .locations .location .locations_gmap{
 	margin: 10px 0;
 }
+
+/* Store Locator */
+.store_locator
+{
+
+}
+.store_locator .input_wrapper
+{
+	padding-bottom: 10px;
+}
+.store_locator .input_wrapper label
+{
+	display: block;
+}
+
+/* Fix to make sure the Google Maps controls don't get messed up.
+ * More info: See http://stackoverflow.com/questions/7471830/google-maps-api-v3-weird-ui-display-glitches-with-screenshot
+ */
+#map-canvas img { max-width: none !important; }
