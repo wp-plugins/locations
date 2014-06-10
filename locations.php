@@ -4,7 +4,7 @@ Plugin Name: Locations
 Plugin Script: locations.php
 Plugin URI: http://goldplugins.com/our-plugins/locations/
 Description: List your business' locations and show a map for each one.
-Version: 1.2
+Version: 1.2.1
 Author: GoldPlugins
 Author URI: http://goldplugins.com/
 
@@ -26,8 +26,6 @@ along with Locations.  If not, see <http://www.gnu.org/licenses/>.
 
 require_once('gold-framework/plugin-base.php');
 require_once('gold-framework/loc_p_kg.php');
-//require_once('lib/lib.php');
-//require_once('lib/locations_options.php');
 
 class LocationsPlugin extends GoldPlugin
 {
@@ -77,12 +75,22 @@ class LocationsPlugin extends GoldPlugin
 		$customFields[] = array('name' => 'state', 'title' => 'State', 'description' => 'Example: NC', 'type' => 'text');
 		$customFields[] = array('name' => 'zipcode', 'title' => 'Zipcode', 'description' => 'Example: 27601', 'type' => 'text');
 		$customFields[] = array('name' => 'phone', 'title' => 'Phone', 'description' => 'Primary phone number of this location, example: 919-555-3333', 'type' => 'text');
-		$customFields[] = array('name' => 'fax', 'title' => 'Fax', 'description' => 'Fax number of this location, example: 919-555-3344', 'type' => 'text');
-		$customFields[] = array('name' => 'email', 'title' => 'Email', 'description' => 'Email address for this location, example: shopname@ourbrand.com', 'type' => 'text');
 		$customFields[] = array('name' => 'website_url', 'title' => 'Website', 'description' => 'Website URL address for this location, example: http://goldplugins.com', 'type' => 'text');
 		$customFields[] = array('name' => 'show_map', 'title' => 'Show Google Map', 'description' => 'If checked, a Google Map with a marker at the above address will be displayed.', 'type' => 'checkbox');
 		$customFields[] = array('name' => 'latitude', 'title' => 'Latitude', 'description' => 'Latitude of this location. You can leave this blank, and we will calculate it for you based on the address you entered (with the Google Maps geocoder).', 'type' => 'text');
 		$customFields[] = array('name' => 'longitude', 'title' => 'Longitude', 'description' => 'Longitude of this location. You can ignore this field, and we will calculate it for you based on the address you entered (with the Google Maps geocoder).', 'type' => 'text');
+
+
+		$showEmail = get_option('loc_p_show_email', true);
+		if ($showEmail) {
+			$customFields[] = array('name' => 'email', 'title' => 'Email', 'description' => 'Email address for this location, example: shopname@ourbrand.com', 'type' => 'text');
+		}
+
+		$showFax = get_option('loc_p_show_fax_number', true);		
+		if ($showFax) {
+			$customFields[] = array('name' => 'fax', 'title' => 'Fax', 'description' => 'Fax number of this location, example: 919-555-3344', 'type' => 'text');
+		}
+
 		$this->add_custom_post_type($postType, $customFields);
 		
 		// add a hook to geocode addresses if needed, which runs *after* we have already saved the custom fields for this location
@@ -93,7 +101,7 @@ class LocationsPlugin extends GoldPlugin
 	/* Load the Google Maps API Key from the plugin settings into a member variable. Called on init. */
 	function set_google_maps_api_key()
 	{
-		$this->google_geocoder_api_key = get_option('google_maps_api_key', '');		
+		$this->google_geocoder_api_key = get_option('loc_p_google_maps_api_key', '');		
 		// TODO: should we show a warning on the settings page if this has not been set?
 	}	
 	
@@ -195,7 +203,7 @@ class LocationsPlugin extends GoldPlugin
 			// perform the search
 			$your_location = $_REQUEST['your_location'];
 			$radius_miles = $this->get_search_radius_in_miles();
-			$radius_pretty = get_option('search_radius');
+			$radius_pretty = get_option('loc_p_search_radius');
 			$nearest_locations = $this->find_nearest_locations($your_location, $radius, $origin); // second param is radius
 			
 			// generate the SERP (or the message saying "no results found")
@@ -214,8 +222,8 @@ class LocationsPlugin extends GoldPlugin
 	
 	function get_search_radius_in_miles()
 	{
-		$m_or_km = get_option('miles_or_km', 'miles');
-		$radius = intval(get_option('search_radius', 0));
+		$m_or_km = get_option('loc_p_miles_or_km', 'miles');
+		$radius = intval(get_option('loc_p_search_radius', 0));
 		if ($radius < 1) { 
 			$radius = 1;			
 		} else if ($radius > 250) { 
@@ -252,7 +260,7 @@ class LocationsPlugin extends GoldPlugin
 		}
 		else
 		{
-			$miles_or_km = (get_option('miles_or_km', 'miles') == 'miles') ? 'miles' : 'kilometers';
+			$miles_or_km = (get_option('loc_p_miles_or_km', 'miles') == 'miles') ? 'miles' : 'kilometers';
 			$html .= '<p class="no_locations">No locations found within ' . htmlentities($radius) . ' ' . $miles_or_km . ' of ' . htmlentities($your_location) .'.</p>';
 		}	
 		return $html;
@@ -272,7 +280,7 @@ class LocationsPlugin extends GoldPlugin
 	{
 		$html = '';
 		$addr = htmlentities($loc['street_address']);
-		$miles_or_km = (get_option('miles_or_km', 'miles') == 'miles') ? 'miles' : 'kilometers';
+		$miles_or_km = (get_option('loc_p_miles_or_km', 'miles') == 'miles') ? 'miles' : 'kilometers';
 		if (isset($loc['street_address_line_2']) && strlen($loc['street_address_line_2']) > 0) {
 			$addr .= '<br />' . htmlentities($loc['street_address_line_2']);
 		}
@@ -303,12 +311,12 @@ class LocationsPlugin extends GoldPlugin
 				'lng' => $loc['lng'] 
 		);
 
-		$showEmail = get_option('show_email', true);
+		$showEmail = get_option('loc_p_show_email', true);
 		if ($showEmail && isset($loc['email']) && strlen($loc['email']) > 0) {
 			$data['email'] = $loc['email'];
 		}
 
-		$showFax = get_option('show_fax_number', true);		
+		$showFax = get_option('loc_p_show_fax_number', true);		
 		if ($showFax && isset($loc['fax']) && strlen($loc['fax']) > 0) {
 			$data['fax'] = $loc['fax'];
 		}
@@ -395,7 +403,7 @@ class LocationsPlugin extends GoldPlugin
 				$loc['lng'] = get_post_meta($myId, '_ikcf_longitude', true);
 							
 				// calculate the distance, and add it as a key
-				$miles_or_km = get_option('miles_or_km', 'miles');
+				$miles_or_km = get_option('loc_p_miles_or_km', 'miles');
 				$loc['distance'] = $this->distance_between_coords($loc['lat'], $loc['lng'], $origin['lat'], $origin['lng'], $miles_or_km);
 
 				// add this location to the unsorted list
@@ -551,7 +559,9 @@ class LocationsPlugin extends GoldPlugin
 		$email = $this->get_option_value($loc->ID, 'email','');
 		$website_url = $this->get_option_value($loc->ID, 'website_url','');
 		$add_map = $this->get_option_value($loc->ID, 'show_map', false);
-				
+		$showEmail = get_option('loc_p_show_email', true);
+		$showFax = get_option('loc_p_show_fax_number', true);		
+		
 		// start building the HTML for this location
 		$html = '';
 		
@@ -573,7 +583,7 @@ class LocationsPlugin extends GoldPlugin
 		if (strlen($phone) > 1) {
 			$html .= '<div class="phone-wrapper"><strong>Phone:</strong> <span class="num phone">' . htmlentities($phone) . '</span></div>';
 		}
-		if (strlen($fax) > 1) {
+		if (strlen($fax) > 1 && $showFax) {
 			$html .= '<div class="fax-wrapper"><strong>Fax:</strong> <span class="num fax">' . htmlentities($fax) . '</span></div>';
 		}				
 		
@@ -626,6 +636,8 @@ class LocationsPlugin extends GoldPlugin
 	
 	private function build_links_html($street_address, $street_address_line_2, $city, $state, $zipcode, $email = '', $website_url = '', $add_map = false)
 	{
+		$showEmail = get_option('loc_p_show_email', true);
+	
 		// generate the Google Maps links
 		if (strlen($street_address_line_2) > 0) {
 			$full_address = $street_address . ', ' . $street_address_line_2 . ' ' . $city . ', ' . $state . ' ' . $zipcode;
@@ -642,7 +654,7 @@ class LocationsPlugin extends GoldPlugin
 				$html .= ' <span class="divider">|</span> ';
 			}
 			$html .= '<a href="' . $google_maps_directions_url. '">Directions</a>';
-			if (strlen($email) > 1) {
+			if (strlen($email) > 1 && $showEmail) {
 				$html .= ' <span class="divider">|</span> ';
 				$html .= '<a class="email" href="mailto:' . $email . '">Email</a>';
 			}
@@ -765,13 +777,13 @@ class LocationsPlugin extends GoldPlugin
 		}	
 
 		$plugin_options = array();
-		$plugin_options[] = array('name' => 'google_maps_api_key', 'label' => 'Google Maps API Key', 'desc' => 'Without a Google Maps API key, your plugin may not work. Get your API key <a href="https://developers.google.com/maps/documentation/javascript/tutorial#api_key" target="_blank">here</a>.' );
-		$plugin_options[] = array('name' => 'show_fax_number', 'label' => 'Show Fax Number', 'type' => 'checkbox', 'default' => '1');
-		$plugin_options[] = array('name' => 'show_email', 'label' => 'Show Email', 'type' => 'checkbox', 'default' => '1');
+		$plugin_options[] = array('name' => 'loc_p_google_maps_api_key', 'label' => 'Google Maps API Key', 'desc' => 'Without a Google Maps API key, your plugin may not work. Get your API key <a href="https://developers.google.com/maps/documentation/javascript/tutorial#api_key" target="_blank">here</a>.' );
+		$plugin_options[] = array('name' => 'loc_p_show_fax_number', 'label' => 'Show Fax Number', 'type' => 'checkbox', 'default' => '1');
+		$plugin_options[] = array('name' => 'loc_p_show_email', 'label' => 'Show Email', 'type' => 'checkbox', 'default' => '1');
 		
 		$pro_options = array();
-		$pro_options[] = array('name' => 'miles_or_km', 'label' => 'Miles or Kilometers', 'desc' => 'Should the store locator show distances in miles or kilometers?', 'type' => 'radio', 'options' => array('miles' => 'Miles', 'km' => 'Kilometers'), 'default' => 'miles' );
-		$pro_options[] = array('name' => 'search_radius', 'label' => 'Search Radius', 'desc' => 'When a user searches for nearby locations, show stores that are within this distance.' );
+		$pro_options[] = array('name' => 'loc_p_miles_or_km', 'label' => 'Miles or Kilometers', 'desc' => 'Should the store locator show distances in miles or kilometers?', 'type' => 'radio', 'options' => array('miles' => 'Miles', 'km' => 'Kilometers'), 'default' => 'miles' );
+		$pro_options[] = array('name' => 'loc_p_search_radius', 'label' => 'Search Radius', 'desc' => 'When a user searches for nearby locations, show stores that are within this distance.' );
 		
 		// save settings if needed
 		if (isset($_POST["update_settings"]))
@@ -797,7 +809,7 @@ class LocationsPlugin extends GoldPlugin
 			else
 			{				
 				// save registration keys if provided
-				$reg_keys = array('registration_api_key', 'registration_website_url', 'registration_email');
+				$reg_keys = array('loc_p_registration_api_key', 'loc_p_registration_website_url', 'loc_p_registration_email');
 				foreach($reg_keys as $name) {
 					if (isset($_POST[$name])) {
 						$val = esc_attr($_POST[$name]);
@@ -844,7 +856,7 @@ class LocationsPlugin extends GoldPlugin
 				<h3>Locations Pro Settings - Upgrade To Unlock</h3>
 				<p class="upgrade">Please enter your registration key below to activate Locations Pro, and unlock the Store Locator feature.</p>
 				<?php $this->pro_registration_form(); ?>
-				<p class="upgrade"><strong><a href="#">Haven't upgraded yet? Click Here to Purchase Locations Pro.</a></strong></p>				
+				<p class="upgrade"><strong><a href="http://goldplugins.com/our-plugins/locations/?utm_source=plugin&utm_campaign=upgrade_api_key">Haven't upgraded yet? Click Here to Purchase Locations Pro.</a></strong></p>				
 				<p class="submit"><input type="submit" value="Save Changes" class="button button-primary" id="submit" name="submit"></p>
 				<?php else: ?>
 				<h3>Store Locator Settings</h3>
@@ -1040,7 +1052,7 @@ class LocationsPlugin extends GoldPlugin
 					<p class="explain"><strong>What To Expect:</strong> You'll receive you around one email from us each month, jam-packed with special offers and tips for getting the most out of WordPress. Of course, you can unsubscribe at any time.</p>
 				</form>
 			</div>
-			<p class="u_to_p"><a href="#">Upgrade to Locations Pro now</a> to remove banners like this one.</p>
+			<p class="u_to_p"><a href="http://goldplugins.com/our-plugins/locations/?utm_source=plugin&utm_campaign=upgrade_now">Upgrade to Locations Pro now</a> to remove banners like this one.</p>
 		</div>
 		<!--End mc_embed_signup-->
 <?php
@@ -1054,28 +1066,28 @@ class LocationsPlugin extends GoldPlugin
 			<table class="form-table">
 				<tr valign="top">
 					<th scope="row">
-						<label for="registration_api_key">API Key:</label>
+						<label for="loc_p_registration_email">Email:</label>
 					</th>
 					<td>
-						<input type="text" id="registration_api_key" name="registration_api_key" size="25" value="" />
+						<input type="text" id="loc_p_registration_email" name="loc_p_registration_email" size="25" value="" />
 						<!--<p class="description"></p>-->
 					</td>
 				</tr>
 				<tr valign="top">
 					<th scope="row">
-						<label for="registration_website_url">Website URL:</label>
+						<label for="loc_p_registration_website_url">Website URL:</label>
 					</th>
 					<td>
-						<input type="text" id="registration_website_url" name="registration_website_url" size="25" value="" />
+						<input type="text" id="loc_p_registration_website_url" name="loc_p_registration_website_url" size="25" value="" />
 						<!--<p class="description"></p>-->
 					</td>
 				</tr>
 				<tr valign="top">
 					<th scope="row">
-						<label for="registration_email">Email:</label>
+						<label for="loc_p_registration_api_key">API Key:</label>
 					</th>
 					<td>
-						<input type="text" id="registration_email" name="registration_email" size="25" value="" />
+						<input type="text" id="loc_p_registration_api_key" name="loc_p_registration_api_key" size="25" value="" />
 						<!--<p class="description"></p>-->
 					</td>
 				</tr>
@@ -1094,9 +1106,9 @@ class LocationsPlugin extends GoldPlugin
 		}
 		
 		// first time running, so check the key and cache the result
-		$email = get_option('registration_email', '');
-		$webaddress = get_option('registration_website_url', '');
-		$key = get_option('registration_api_key', '');
+		$email = get_option('loc_p_registration_email', '');
+		$webaddress = get_option('loc_p_registration_website_url', '');
+		$key = get_option('loc_p_registration_api_key', '');
 		
 		$checker = new LOC_P_KG();
 		$computedKey = $checker->computeKey($webaddress, $email);

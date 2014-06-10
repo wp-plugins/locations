@@ -3,7 +3,7 @@ Contributors: ghuger, richardgabriel
 Tags: locations, business locations, business maps, maps, business address map
 Requires at least: 3.0.1
 Tested up to: 3.9.1
-Stable tag: 1.2
+Stable tag: 1.2.1
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -109,6 +109,9 @@ https://developers.google.com/maps/documentation/javascript/tutorial#api_key
 
 == Changelog ==
 
+= 1.2.1 =
+* Fix: hide fax and e-mail meta boxes if those options are selected.
+
 = 1.2 =
 * Adds a Settings page, Google Maps Geocoder, and optional Pro features.
 
@@ -124,4 +127,4 @@ https://developers.google.com/maps/documentation/javascript/tutorial#api_key
 
 == Upgrade Notice ==
 
-* 1.2: Update Available!
+* 1.2.1: Update Available!
