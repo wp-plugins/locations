@@ -2,8 +2,8 @@
 Contributors: ghuger, richardgabriel
 Tags: locations, business locations, business maps, maps, business address map
 Requires at least: 3.0.1
-Tested up to: 3.9.1
-Stable tag: 1.2.1
+Tested up to: 4.0
+Stable tag: 1.3
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -13,18 +13,22 @@ Locations is a simple-to-use plugin for adding Locations with Maps to your WordP
 
 Locations is a simple-to-use plugin for adding business Locations with Maps to your WordPress Theme using a shortcode.
 
+= Easily Display a Map with Your Business Address on Your Contact Page =
+
 Need to add your business' Location to your website, and looking for an easy way to do so?  Locations is right for you!  Locations provides and easy to use interface for adding your businesses locations, including their phone number, fax number, two line address, city, state, zip code, and contact e-mail address.  Then you can use Locations' simple shortcode to insert your location to any page or post needed on your website.
 
 Users will see your location information formatted in an easy to use layout.  We provide links for Directions - which will start from your current location on location-enabled devices - sending an email, or contacting you via phone.  Locations includes the option to display a Google Map pinpointed on your current location, too!
 
 Locations includes default CSS that makes your business location information readable and understandable.  Locations works both on Mobile and Desktop browsers!
 
+= Manage Multiple Business Locations with Ease! =
+
 Have multiple business locations?  Locations allows you to output as many locations, each with their own map, on any page as you want!  Use one shortcode to list them all, or individual shortcodes to call out specific business locations!  With Locations, you can update Phone Numbers, E-Mail Addresses, and other contact information from the ease of your WordPress Dashboard - you won't have to track down each Page and Post and make the same edit!
 
 Most customers on the internet are looking for your businesses location - start using Locations today to give them the information they need!
 
-= Upgrade To Pro =
-Need a Store Locator? Upgrade to Locations Pro and you'll unlock the Store Locator feature.
+= Easily Display A Store Locator with Locations Pro! =
+Need a Store Locator? [Upgrade to Locations Pro](http://goldplugins.com/our-plugins/locations/ "Upgrade to Locations Pro") and you'll unlock the Store Locator feature.
 
 == Installation ==
 
@@ -86,6 +90,11 @@ You have a few things to pay attention to:
 - To Output a List of Locations, simply use the shortcode [locations] on the Page or Post that you want your list of business locations to appear.
 - To Output a Specific Location, simply use the shortcode [locations id=123].  You can get the ID of the Location by copying the shortcode from the Location List inside WordPress.
 
+= Outputting a Store Locator =
+
+- **NOTE:** This feature requires Locations Pro.  [Click here](http://goldplugins.com/our-plugins/locations/ "Upgrade To Locations Pro") to upgrade today!
+- To Output a Store Locator, simply use the shortcode [store_locator caption="any caption text you want below the heading"] on the page that you want the Store Locator to appear on.  Be sure you have already aqcuired your Google Maps API key and have registered your copy of Locations Pro, otherwise this feature will not work!
+
 == Frequently Asked Questions ==
 
 = How Do I Display A Map With My Location? =
@@ -109,6 +118,11 @@ https://developers.google.com/maps/documentation/javascript/tutorial#api_key
 
 == Changelog ==
 
+= 1.3 =
+* Updates compatibility to WP 4.0.
+* Minor registration update.
+* Options screen update.
+
 = 1.2.1 =
 * Fix: hide fax and e-mail meta boxes if those options are selected.
 
@@ -127,4 +141,4 @@ https://developers.google.com/maps/documentation/javascript/tutorial#api_key
 
 == Upgrade Notice ==
 
-* 1.2.1: Update Available!
+* 1.3: Update Available!

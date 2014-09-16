@@ -4,7 +4,7 @@ Plugin Name: Locations
 Plugin Script: locations.php
 Plugin URI: http://goldplugins.com/our-plugins/locations/
 Description: List your business' locations and show a map for each one.
-Version: 1.2.1
+Version: 1.3
 Author: GoldPlugins
 Author URI: http://goldplugins.com/
 
@@ -57,7 +57,10 @@ class LocationsPlugin extends GoldPlugin
 		add_action('manage_location_posts_custom_column', array($this, 'locations_columns_content'), 10, 2); 
 
 		/* Add a menu item for the settings page */
-		add_action('admin_menu', array($this, 'add_locations_settings_page')); 		
+		add_action('admin_menu', array($this, 'add_locations_settings_page')); 
+		
+		/* Add a menu item for the Help & Instructions page */
+		add_action('admin_menu', array($this, 'add_locations_help_page')); 		
 
 		/* Add any hooks that the base class has setup */
 		parent::add_hooks();
@@ -765,7 +768,18 @@ class LocationsPlugin extends GoldPlugin
 	function add_locations_settings_page()
 	{			
 		//$locations_options = new locationsOptions();
-		add_submenu_page('edit.php?post_type=location', 'Settings', 'Settings', 'edit_posts', basename(__FILE__), array($this, 'output_location_settings_page'));
+		add_submenu_page('edit.php?post_type=location', 'Settings', 'Settings', 'edit_posts', 'locations-settings', array($this, 'output_location_settings_page'));
+	}
+	
+	/* Create a menu item for the Location Help & Instructions page */
+	function add_locations_help_page()
+	{			
+		add_submenu_page('edit.php?post_type=location', 'Help & Instructions', 'Help & Instructions', 'edit_posts', 'help-instructions', array($this, 'output_location_help_page'));
+	}
+	
+	/* Render the Location Help & Instructions Page */
+	function output_location_help_page(){
+		include("pages/help.html");
 	}
 	
 	/* Render the Location settings page, and save options that may be changed */
@@ -852,15 +866,34 @@ class LocationsPlugin extends GoldPlugin
 					endforeach; ?>
 				</table>
 				<p class="submit"><input type="submit" value="Save Changes" class="button button-primary" id="submit" name="submit"></p>				
-				<?php if (!$this->isValidKey()):?>
-				<h3>Locations Pro Settings - Upgrade To Unlock</h3>
-				<p class="upgrade">Please enter your registration key below to activate Locations Pro, and unlock the Store Locator feature.</p>
-				<?php $this->pro_registration_form(); ?>
-				<p class="upgrade"><strong><a href="http://goldplugins.com/our-plugins/locations/?utm_source=plugin&utm_campaign=upgrade_api_key">Haven't upgraded yet? Click Here to Purchase Locations Pro.</a></strong></p>				
-				<p class="submit"><input type="submit" value="Save Changes" class="button button-primary" id="submit" name="submit"></p>
+				<h3>Registration Settings</h3>
+				<style type="text/css">
+				.locations_registered {
+					background-color: #90EE90;
+					font-weight: bold;
+					padding: 20px;
+					width: 860px;
+				}
+				.locations_not_registered {
+					background-color: #FF8C00;
+					font-weight: bold;
+					padding: 20px;
+					width: 860px;
+				}
+				</style>
+				<?php if($this->isValidKey()): ?>	
+				<p class="locations_registered">Your plugin is succesfully registered and activated!</p>
 				<?php else: ?>
-				<h3>Store Locator Settings</h3>
-				
+				<p class="locations_not_registered">Your plugin is not succesfully registered and activated. <a href="http://goldplugins.com/our-plugins/locations/" target="_blank">Click here</a> to upgrade today!</p>
+				<?php endif; ?>	
+				<?php if(!$this->isValidMSKey()): ?>
+				<?php $this->pro_registration_form(); ?>		
+				<p class="submit"><input type="submit" value="Save Changes" class="button button-primary" id="submit" name="submit"></p>
+				<?php endif; ?>
+				<h3>Store Locator Settings</h3>				
+				<?php if(!$this->isValidKey()): ?>	
+				<p class="upgrade"><strong><a href="http://goldplugins.com/our-plugins/locations/?utm_source=plugin&utm_campaign=upgrade_api_key">Haven't upgraded yet? Click Here to Purchase Locations Pro.</a></strong></p>		
+				<?php else: ?>
 				<table class="form-table">
 				<?php foreach($pro_options as $opt):
 							$this->output_option_row($opt);
@@ -1049,7 +1082,7 @@ class LocationsPlugin extends GoldPlugin
 					<!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
 					<div style="position: absolute; left: -5000px;"><input type="text" name="b_403e206455845b3b4bd0c08dc_6ad78db648" tabindex="-1" value=""></div>
 					<div class="clear"><input type="submit" value="Subscribe Now" name="subscribe" id="mc-embedded-subscribe" class="button"></div>
-					<p class="explain"><strong>What To Expect:</strong> You'll receive you around one email from us each month, jam-packed with special offers and tips for getting the most out of WordPress. Of course, you can unsubscribe at any time.</p>
+					<p class="explain"><strong>What To Expect:</strong> <br/> As soon as you've confirmed your subscription, you'll receive a coupon code for a big discount on Locations Pro. After that, you'll receive about one email from us each month, jam-packed with special offers and tips for getting the most out of WordPress. Of course, you can unsubscribe at any time.</p>
 				</form>
 			</div>
 			<p class="u_to_p"><a href="http://goldplugins.com/our-plugins/locations/?utm_source=plugin&utm_campaign=upgrade_now">Upgrade to Locations Pro now</a> to remove banners like this one.</p>
@@ -1073,7 +1106,7 @@ class LocationsPlugin extends GoldPlugin
 						<!--<p class="description"></p>-->
 					</td>
 				</tr>
-				<tr valign="top">
+				<tr valign="top" style="display: none;">
 					<th scope="row">
 						<label for="loc_p_registration_website_url">Website URL:</label>
 					</th>
@@ -1112,8 +1145,9 @@ class LocationsPlugin extends GoldPlugin
 		
 		$checker = new LOC_P_KG();
 		$computedKey = $checker->computeKey($webaddress, $email);
+		$computedKeyEJ = $checker->computeKeyEJ($email);
 
-		if ($key == $computedKey) {
+		if ($key == $computedKey || $key == $computedKeyEJ) {
 			$this->valid_key = true;
 			return true;
 		} else {
@@ -1126,6 +1160,20 @@ class LocationsPlugin extends GoldPlugin
 			}
 		}
 		$this->valid_key = false;
+		return false;
+	}
+
+	/* Returns true/false indicating whether or not this is the Pro version */
+	function isValidMSKey($skipCache = false)
+	{
+		$plugin = "locations-pro/locations-pro.php";			
+		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+		
+		if(is_plugin_active($plugin)){
+			$this->valid_key = true;
+			return true;
+		}
+			
 		return false;
 	}
 

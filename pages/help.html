@@ -1,0 +1,96 @@
+<style>
+	#locations_help {
+		max-width: 750px;
+	}
+	#locations_help > div {
+		padding-top: 25px;
+	}
+	#locations_help > div > h3 {
+		border-bottom: 1px solid lightgray;
+		max-width: 650px;
+		padding-bottom: 7px;
+	}
+	#locations_help p {
+		max-width: 550px;
+	}
+	#locations_help li {
+		max-width: 550px;
+	}
+	#locations_help ul{
+		list-style-type: disc;
+		margin-left: 2em;
+	}
+</style>
+<div id="locations_help">
+	<h2>Help &amp; Instructions</h2>
+	<p>This page includes all kinds of helpful tips for getting you up and running.</p>
+	<h3>Contents:</h3>
+	<ol class="quick_nav">
+		<li><a href="#google_maps_API">Obtaining a Google Maps API Key</a></li>
+		<li><a href="#add_a_new_location">Adding a New Location</a></li>
+		<li><a href="#edit_a_location">Editing an Location</a></li>
+		<li><a href="#delete_a_location">Deleting an Location</a></li>
+		<li><a href="#outputting_locations">Outputting Locations</a></li>
+		<li><a href="#outputting_store_locator">Outputting a Store Locator</a></li>
+	</ol>
+	<div id="google_maps_API">
+		<h3>Obtaining a Google Maps API Key</h3>
+		<p><strong>Please Note</strong>
+		You will want to get a free Google Maps API key, so that the Locations plugin can use their geocoder to convert the addresses of your locations into Latitude and Longitude coordinates. You can get an API key from Google for free at <a href="https://developers.google.com/maps/documentation/javascript/tutorial#api_key" title="Google Maps API Key">this</a> URL.</p>
+		<p>Once you have the API key, you should update the Locations plugin's settings to include it.</p>
+	</div>
+	<div id="add_a_new_location">
+		<h3 id="adding-a-new-location">Adding a New Location</h3>
+		<p>Adding a New Location is easy!  There are 3 ways to start adding a new location</p>
+		<p><strong>How to Add a New Location</strong></p>
+		<ol>
+		<li>Click on "+ New" -&gt; Location, from the Admin Bar <em>or</em></li>
+		<li>Click on "Add New Location" from the Menu Bar in the WordPress Admin <em>or</em></li>
+		<li>Click on "Add New Location" from the top of the list of Locations, if you're viewing them all.</li>
+		</ol>
+		<p><strong>New Location Content</strong></p>
+		<p>You have a few things to pay attention to:</p>
+		<ul>
+		<li><strong>Street Address:</strong> This is the first line of your street address.</li>
+		<li><strong>Street Address (line 2):</strong> This is the second line of your street address - use this if you have an apartment or suite number.</li>
+		<li><strong>City:</strong> This is the City you are located in.</li>
+		<li><strong>State:</strong> This is the State you are located in.</li>
+		<li><strong>Zipcode:</strong> This is the Zipcode of your location.</li>
+		<li><strong>Phone:</strong> This is the Primary phone number.  This will be displayed, if set.</li>
+		<li><strong>Fax:</strong> This is the Primary fax number.  This will be displayed, if set.</li>
+		<li><strong>Email:</strong> This is the e-mail address you wish to have linked.  If set, this will be displayed to the public.</li>
+		<li><strong>Website:</strong> This is the web address you want linked to.  If set, this will be displayed to the public.</li>
+		<li><strong>Show Map:</strong> Check this box if you want a Google Map displayed with your location.</li>
+		</ul>
+	</div>
+	<div id="edit_a_location">
+		<h3 id="editing-a-location">Editing a Location</h3>
+		<p><strong>This is as easy as adding a New Location!</strong></p>
+		<ol>
+		<li>Click on "Locations" in the Admin Menu.</li>
+		<li>Hover over the Location you want to Edit and click "Edit".</li>
+		<li>Change the fields to the desired content and click "Update".</li>
+		</ol>
+	</div>
+	<div id="delete_a_location">
+		<h3 id="deleting-a-location">Deleting a Location</h3>
+		<p><strong>This is as easy as adding a New Location!</strong></p>
+		<ol>
+		<li>Click on "Locations" in the Admin Menu.</li>
+		<li>Hover over the Location you want to Delete and click "Delete".</li>
+		</ol>
+		<p><strong>You can also change the Status of a Location, if you want to keep it on file.</strong></p>
+	</div>
+	<div id="outputting_locations">
+		<h3 id="outputting-locations">Outputting Locations</h3>
+		<ul>
+		<li>To Output a List of Locations, simply use the shortcode <code>[locations]</code> on the Page or Post that you want your list of business locations to appear.</li>
+		<li>To Output a Specific Location, simply use the shortcode <code>[locations id=123]</code>.  You can get the ID of the Location by copying the shortcode from the Location List inside WordPress.</li>
+		</ul>
+	</div>
+	<div id="outputting_store_locator">
+		<h3>Outputting a Store Locator</h3>
+		<p><strong>NOTE:</strong> This feature requires Locations Pro.  <a href="http://goldplugins.com/our-plugins/locations/">Click here</a> to upgrade today!</p>
+		<p>To Output a Store Locator, simply use the shortcode [store_locator caption="any caption text you want below the heading"] on the page that you want the Store Locator to appear on.  Be sure you have already aqcuired your Google Maps API key and have registered your copy of Locations Pro, otherwise this feature will not work!</p>
+	</div>
+</div>
