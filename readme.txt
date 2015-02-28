@@ -2,8 +2,8 @@
 Contributors: ghuger, richardgabriel
 Tags: locations, business locations, business maps, maps, business address map
 Requires at least: 3.0.1
-Tested up to: 4.0
-Stable tag: 1.3
+Tested up to: 4.1.1
+Stable tag: 1.4.1
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -118,6 +118,12 @@ https://developers.google.com/maps/documentation/javascript/tutorial#api_key
 
 == Changelog ==
 
+= 1.4.1 =
+* Updates compatibility to WP 4.1.1.
+
+= 1.4 =
+* Updates compatibility to WP 4.1.
+
 = 1.3 =
 * Updates compatibility to WP 4.0.
 * Minor registration update.
@@ -141,4 +147,4 @@ https://developers.google.com/maps/documentation/javascript/tutorial#api_key
 
 == Upgrade Notice ==
 
-* 1.3: Update Available!
+* 1.4.1: Update Available!

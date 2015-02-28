@@ -4,7 +4,7 @@ Plugin Name: Locations
 Plugin Script: locations.php
 Plugin URI: http://goldplugins.com/our-plugins/locations/
 Description: List your business' locations and show a map for each one.
-Version: 1.3
+Version: 1.4.1
 Author: GoldPlugins
 Author URI: http://goldplugins.com/
 
@@ -478,7 +478,6 @@ class LocationsPlugin extends GoldPlugin
 	
 	function geocode_address($address)
 	{
-		$api_url = 'https://www.googleapis.com/geolocation/v1/geolocate?key=' . $this->google_geocoder_api_key;
 		$params = array('address' => urlencode($address),
 						'key' => $this->google_geocoder_api_key);
 		$param_str = build_query($params);
