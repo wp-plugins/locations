@@ -3,7 +3,7 @@ Contributors: ghuger, richardgabriel
 Tags: locations, business locations, business maps, maps, business address map
 Requires at least: 3.0.1
 Tested up to: 4.1.1
-Stable tag: 1.4.1
+Stable tag: 1.5
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -12,6 +12,12 @@ Locations is a simple-to-use plugin for adding Locations with Maps to your WordP
 == Description ==
 
 Locations is a simple-to-use plugin for adding business Locations with Maps to your WordPress Theme using a shortcode.
+
+= Upgrade to Pro for For Advanced Features and Support =
+
+The GoldPlugins team does not provide direct support for the Locations plugin on the WordPress.org forums. One on one email support is available to people who have purchased Locations Pro only. Locations Pro adds a powerful Store Locator that's based on Google Maps, and adds the ability to import your Locations from a CSV file. You should [upgrade today!](http://goldplugins.com/our-plugins/locations/upgrade-to-locations-pro/?utm_source=wp&utm_campaign=desc_upgrade1 "Upgrade to Locations Pro")
+
+[Upgrade To Locations Pro](http://goldplugins.com/our-plugins/locations/upgrade-to-locations-pro/?utm_source=wp&utm_campaign=desc_upgrade2)
 
 = Easily Display a Map with Your Business Address on Your Contact Page =
 
@@ -118,6 +124,10 @@ https://developers.google.com/maps/documentation/javascript/tutorial#api_key
 
 == Changelog ==
 
+= 1.5 =
+* Fix: address issue with Store Locator results.
+* Pro Feature: adds CSV Location importer.
+
 = 1.4.1 =
 * Updates compatibility to WP 4.1.1.
 
@@ -147,4 +157,4 @@ https://developers.google.com/maps/documentation/javascript/tutorial#api_key
 
 == Upgrade Notice ==
 
-* 1.4.1: Update Available!
+* 1.5: Pro Features available!
