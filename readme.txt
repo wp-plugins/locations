@@ -3,7 +3,7 @@ Contributors: ghuger, richardgabriel
 Tags: locations, business locations, business maps, maps, business address map
 Requires at least: 3.0.1
 Tested up to: 4.1.1
-Stable tag: 1.5
+Stable tag: 1.6
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -100,6 +100,10 @@ You have a few things to pay attention to:
 
 - **NOTE:** This feature requires Locations Pro.  [Click here](http://goldplugins.com/our-plugins/locations/ "Upgrade To Locations Pro") to upgrade today!
 - To Output a Store Locator, simply use the shortcode [store_locator caption="any caption text you want below the heading"] on the page that you want the Store Locator to appear on.  Be sure you have already aqcuired your Google Maps API key and have registered your copy of Locations Pro, otherwise this feature will not work!
+- To default the Store Locator to show All Locations in the database, use [store_locator show_all_locations=1]
+- To default the Store Locator to show All Locations within the Search Radius, based on the visitor's Location, in the database, use [store_locator show_all_nearby_locations=1]
+- To display a Search Radius drop down with the Search Form, use [store_locator show_search_radius=1]
+- To display a Category Selector on the Search Form, use [store_locator show_category_select=1]
 
 == Frequently Asked Questions ==
 
@@ -123,6 +127,11 @@ https://developers.google.com/maps/documentation/javascript/tutorial#api_key
 3. This is a demo of a Location from the user side, with a map displayed.
 
 == Changelog ==
+
+= 1.6 =
+* Feature: Adds ability to search Locations by Category, using the Store Locator.
+* Feature: Adds ability for user to pick a distance range when using the Store Locator.
+* Feature: Adds View All Locations Map.
 
 = 1.5 =
 * Fix: address issue with Store Locator results.
@@ -157,4 +166,4 @@ https://developers.google.com/maps/documentation/javascript/tutorial#api_key
 
 == Upgrade Notice ==
 
-* 1.5: Pro Features available!
+* 1.6: Store Locator, Locations Map upgrades!
