@@ -3,7 +3,7 @@ Contributors: ghuger, richardgabriel
 Tags: locations, business locations, business maps, maps, business address map
 Requires at least: 3.0.1
 Tested up to: 4.1.1
-Stable tag: 1.6
+Stable tag: 1.7
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -128,6 +128,10 @@ https://developers.google.com/maps/documentation/javascript/tutorial#api_key
 
 == Changelog ==
 
+= 1.7 =
+* Feature: Adds ability to Export your Locations
+* Update: Updates the functionality of the CSV Importer to support more malleable field structure.
+
 = 1.6 =
 * Feature: Adds ability to search Locations by Category, using the Store Locator.
 * Feature: Adds ability for user to pick a distance range when using the Store Locator.
@@ -166,4 +170,4 @@ https://developers.google.com/maps/documentation/javascript/tutorial#api_key
 
 == Upgrade Notice ==
 
-* 1.6: Store Locator, Locations Map upgrades!
+* 1.7: CSV Import / Export Upgrade!

@@ -1,9 +1,3 @@
-if (typeof($) == 'undefined' && typeof(jQuery) != 'undefined') {
-	$ = jQuery;
-} else {
-	$ = function () { };
-}
-
 var $_gp_map;
 var $_gp_markers = [];
 
@@ -92,7 +86,7 @@ function gp_addLocationMarkers($_gp_map_locations)
 	
 }
 
-$(function ()
+jQuery(function ()
 {
 	// look for a map data that needs to be drawn
 	if(typeof($_gp_map_locations) != 'undefined') {
