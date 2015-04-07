@@ -4,7 +4,7 @@ Plugin Name: Locations
 Plugin Script: locations.php
 Plugin URI: http://goldplugins.com/our-plugins/locations/
 Description: List your business' locations and show a map for each one.
-Version: 1.7
+Version: 1.8
 Author: GoldPlugins
 Author URI: http://goldplugins.com/
 
@@ -212,21 +212,43 @@ class LocationsPlugin extends GoldPlugin
 		$defaults = array(	'caption' => '',
 							'style' =>	'small',
 							'show_photos' => 'true',
-							'id' => '',
+							'id' => 'locations_pro_search_form',
+							'class' => 'store_locator',
 							'show_all_locations' => false,
 							'show_all_nearby_locations' => true,
 							'show_category_select' => false,
-							'show_search_radius' => false
+							'show_search_radius' => false,
+							'show_search_results' => true,
+							'map_width' => '550px',
+							'map_height' => '500px',
+							'map_class' => '',
+							'caption_class' => 'store_locator_caption',
+							'search_button_class' => 'btn btn-search',
+							'search_button_label' => 'Search Now',
+							'input_wrapper_class' => 'input_wrapper',
+							'search_input_label' => 'Your Location:',
+							'search_input_id' => 'your_location',
+							'search_input_class' => '',
+							'search_again_label' => 'Try Your Search Again:',
+							'search_again_class' => 'search_again',
+							'category_select_id' => 'location_category',
+							'category_select_label' => 'location_category',
+							'category_select_description' => 'Leave empty to show All Locations.',
+							'allow_multiple_categories' => true,
+							'radius_select_label' => 'Show Locations Within:',
+							'radius_select_id' => 'search_radius',							
 						);
 		$atts = shortcode_atts($defaults, $atts);	
-
+		$this->shortcode_atts = $atts;
+		
 		// start the HTML output with a wrapper div
-		$id_attr = strlen($atts['id']) > 0 ? ' id="' . htmlentities($atts['id']) . '"' : '';
-		$html = '<div id="locations-pro-search-form" class="store_locator"' . $id_attr . '>';
+		$id_str = sprintf(' id="%s"', $atts['id']);
+		$class_str = sprintf(' class="%s"', $atts['class']);
+		$html = sprintf('<div %s %s>', $id_str, $class_str);
 
 		// add the caption, if one was specified
 		if (strlen($atts['caption']) > 1) {
-			$html .= '<h2 class="store_locator_caption">' . htmlentities($atts['caption']) . '</h2>';
+			$html .= sprintf( '<h2 class="%s">%s</h2>', $atts['caption_class'], htmlentities($atts['caption']) );
 		}
 			
 		// if a search was requested, perform it now and show the results
@@ -239,10 +261,7 @@ class LocationsPlugin extends GoldPlugin
 			}
 			
 			//attempt to load category from search form
-			$the_category = false;
-			if(isset($_REQUEST['location_category'])){
-				$the_category = $_REQUEST['location_category'];
-			}
+			$the_category = !empty($_REQUEST['location_category']) ? $_REQUEST['location_category'] : '';
 			
 			// perform the search
 			$your_location = $_REQUEST['your_location'];
@@ -251,70 +270,44 @@ class LocationsPlugin extends GoldPlugin
 			$nearest_locations = $this->find_nearest_locations($your_location, $radius_miles, $origin, $the_category); // second param is radius
 			
 			// generate the SERP (or the message saying "no results found")
-			$html .= $this->store_locator_results_html($your_location, $radius_pretty, $nearest_locations, $origin);
-			$html .= '<h3>Try Your Search Again:</h3>';
-		//else a search hasn't yet been performed, display optional map with all locations
-		} else {
-			//this option will display all locations in the database.  Depending on the number of locations a user has
-			if($atts['show_all_locations']){ 
-				//get users starting location
-				$start_array = $this->geolocate_current_visitor();
-				$starting_address = "{$start_array['city']}, {$start_array['state']}";
-				$origin = $this->geocode_address($starting_address);
-				
-				//load locations for building map
-				$args = array(
-					'posts_per_page'   => -1,
-					'post_type'        => 'location',
-					'post_status'      => 'publish'
-				);
-				$locations = get_posts( $args );
-				
-				$html .= '<div id="map-canvas" style="width: 550px; min-width: 500px; max-width: 800px; height: 400px; border: 1px solid #ccc; margin-bottom: 30px;"></div>';
-				
-				$markers = array();
-				
-				foreach ( $locations as $location ){
-					$myId = $location->ID;
-					$loc = $this->get_location_metadata($myId);
-					$loc['title'] = get_the_title($myId);
-					$loc['lat'] = get_post_meta($myId, '_ikcf_latitude', true);
-					$loc['lng'] = get_post_meta($myId, '_ikcf_longitude', true);
-								
-					// calculate the distance, and add it as a key
-					$miles_or_km = get_option('loc_p_miles_or_km', 'miles');
-					$loc['distance'] = $this->distance_between_coords($loc['lat'], $loc['lng'], $origin['lat'], $origin['lng'], $miles_or_km);
+			$html .= $this->store_locator_results_html($your_location, $radius_pretty, $nearest_locations, $origin, $atts['show_search_results']);
+			$html .= sprintf('<h3 class="%s">%s</h3>', $atts['search_again_class'], $atts['search_again_label']);
+		}
+		else 
+		{
+			// a search hasn't yet been performed, display optional map with all locations
+			$locations_to_plot = array();
+			$origin = false;
 
-					$markers[] = $this->store_locator_item_build_marker_data($loc);
-				}								
-				
-				// pass the origin and markers data to the page, so that it can be rendered on the map
-				$html .= $this->location_data_js($markers, $origin);	
-			//this option will display all nearby locations (based on default zoom level) in the database
-			//this is a better default to use in case the user has too many locations to plot at once
-			} else if($atts['show_all_nearby_locations']){
-				//get users starting location
-				$start_array = $this->geolocate_current_visitor();
-				$starting_address = "{$start_array['city']}, {$start_array['state']}";
-				$origin = $this->geocode_address($starting_address);
-				
-				// perform the search
-				$your_location = $starting_address;
-				$radius_miles = $this->get_search_radius_in_miles();
-				$radius_pretty = get_option('loc_p_search_radius');
-				$nearest_locations = $this->find_nearest_locations($your_location, $radius_miles); // second param is radius
-				
-				$html .= '<div id="map-canvas" style="width: 550px; min-width: 500px; max-width: 800px; height: 400px; border: 1px solid #ccc; margin-bottom: 30px;"></div>';
-				
-				$markers = array();
-				
-				foreach ( $nearest_locations as $loc ){
-					$markers[] = $this->store_locator_item_build_marker_data($loc);
-				}								
-				
-				// pass the origin and markers data to the page, so that it can be rendered on the map
-				$html .= $this->location_data_js($markers, $origin);	
+			// look for an origin passed in via query string
+			if (!empty($_REQUEST['sl_origin'])) {
+				$starting_address = $_REQUEST['sl_origin'];
+				$origin = $this->geocode_address($starting_address); // $origin will be false if geocode fails
+				$your_location = $origin ? $starting_address : ''; // show provided value in the search input, but only if its a valid address
 			}
+
+			// no origin specified; try to geolocate them by IP address
+			if (!$origin) {
+				$start_array = $this->geolocate_current_visitor();
+				$origin = array('lat' => $start_array['latitude'],
+								'lng' => $start_array['longitude']);
+				$starting_address = !empty($start_array) ? "{$start_array['city']}, {$start_array['state']}" : '';				
+				$your_location = $starting_address; // show the geolocated address in the input, by storing it in $your_location
+			}
+			
+			// load the locations to be shown (all or nearby)
+			if($atts['show_all_locations']) {
+				foreach ( $this->get_all_locations() as $location ) {
+					// convert to array, add lat + lng
+					$locations_to_plot[] = $this->get_location_metadata($location->ID);
+				}			
+			}
+			else if($atts['show_all_nearby_locations']) {
+				$radius_miles = $this->get_search_radius_in_miles();
+				$locations_to_plot = $this->find_nearest_locations($starting_address, $radius_miles);
+			}
+				
+			$html .= $this->build_map_html_for_nearby_locations($locations_to_plot, $origin);
 		}
 
 		// add the search form
@@ -326,6 +319,21 @@ class LocationsPlugin extends GoldPlugin
 		return $html;		
 	}
 	
+	function build_map_html_for_nearby_locations($locations, $origin)
+	{
+		$html = $this->get_map_canvas_html();
+			
+		$markers = array();
+		foreach ( $locations as $loc ){
+			$markers[] = $this->store_locator_item_build_marker_data($loc);
+		}								
+		
+		// add JS variables with the marker data, so we can render it on the map
+		$html .= $this->location_data_js($markers, $origin);
+		
+		return $html;
+	}
+	
 	function geolocate_current_visitor($ignore_cache = false)
 	{
 		$ip = $this->get_real_user_ip();
@@ -334,7 +342,11 @@ class LocationsPlugin extends GoldPlugin
 			return $geo;
 		}
 		else {
-			$geolocator_url = 'http://freegeoip.net/json/' . $ip;
+			if (is_ssl()) {
+				$geolocator_url = 'https://freegeoip.net/json/' . $ip;
+			} else {
+				$geolocator_url = 'http://freegeoip.net/json/' . $ip;
+			}
 			$url_contents = wp_remote_get( $geolocator_url );
 			if (! is_wp_error( $url_contents ) && is_array( $url_contents ) && isset($url_contents['body']) && strlen($url_contents['body']) > 0){
 				$response_body = $url_contents['body'];
@@ -376,6 +388,9 @@ class LocationsPlugin extends GoldPlugin
 			}
 		}
 		else {
+			if(!$_SERVER['REMOTE_ADDR']) {
+				$_SERVER['REMOTE_ADDR'] = $_SERVER['LOCAL_ADDR'];
+			}
 			return $_SERVER['REMOTE_ADDR'];
 		}
 	}
@@ -401,24 +416,33 @@ class LocationsPlugin extends GoldPlugin
 		}
 	}
 	
-	function store_locator_results_html($your_location, $radius, $nearest_locations, $origin)
+	function store_locator_results_html($your_location, $radius, $nearest_locations, $origin, $show_search_results = true)
 	{
 		$markers = array();
 		$html = '';
-		
+
 		// if results were found, output the serp
 		if ( $nearest_locations  !== FALSE && count($nearest_locations) > 0 )
 		{
-			$html .= '<p><strong>Locations nearest to ' . htmlentities($your_location) . '</strong></p>';
-			$html .= '<div id="map-canvas" style="width: 550px; min-width: 500px; max-width: 800px; height: 400px; border: 1px solid #ccc;"></div>';
-			$html .= '<ol class="locations_search_results">';
-			foreach ( $nearest_locations as $loc )
-			{
-				$html .= $this->store_locator_item_html($loc);
-				$markers[] = $this->store_locator_item_build_marker_data($loc);
+			if ($show_search_results) {
+				// include labels, list, etc - the whole shebang
+				$html .= '<p><strong>Locations nearest to ' . htmlentities($your_location) . '</strong></p>';
+				$html .= $this->get_map_canvas_html();
+				$html .= '<ol class="locations_search_results">';
+				foreach ( $nearest_locations as $loc ) {
+					$html .= $this->store_locator_item_html($loc);
+					$markers[] = $this->store_locator_item_build_marker_data($loc);
+				}
+				$html .= '</ol>';
 			}
-			$html .= '</ol>';									
-				
+			else {
+				// map only, no caption or list. does include search box, of course. (its added later by another function)
+				$html .= $this->get_map_canvas_html();
+				foreach ( $nearest_locations as $loc ) {
+					$markers[] = $this->store_locator_item_build_marker_data($loc);
+				}
+			}
+			
 			// pass the origin and markers data to the page, so that it can be rendered on the map
 			$html .= $this->location_data_js($markers, $origin);
 			
@@ -429,7 +453,20 @@ class LocationsPlugin extends GoldPlugin
 			$html .= '<p class="no_locations">No locations found within ' . htmlentities($radius) . ' ' . $miles_or_km . ' of ' . htmlentities($your_location) .'.</p>';
 		}	
 		return $html;
-	}	
+	}
+	
+	function get_map_canvas_html()
+	{
+		$atts = !empty($this->shortcode_atts) ? $this->shortcode_atts : array();
+		$style_str = '';
+		$style_str .= (!empty($atts['map_width'])) ? ' width: ' . rtrim($atts['map_width'], ';') . ';' : '';
+		$style_str .= (!empty($atts['map_height'])) ? ' height: ' . rtrim($atts['map_height'], ';') . ';' : '';
+		$style_str = ' style="' . trim($style_str) . '; border: 1px solid #ccc;"';
+		
+		$class_str = (!empty($atts['map_class'])) ? ' class="' . $atts['map_class'] . '"' : '';		
+		$template =  '<div id="map-canvas" %s %s></div>';
+		return sprintf($template, $class_str, $style_str);
+	}
 	
 	function location_data_js($markers, $origin)
 	{
@@ -494,60 +531,93 @@ class LocationsPlugin extends GoldPlugin
 		$miles_or_km = get_option('loc_p_miles_or_km', 'miles');
 		$location_categories = get_terms( 'location-categories', 'orderby=title&hide_empty=0' );	
 		
+		// begin the form
 		$html = '';
-		$search_url = add_query_arg( 'search_locations', '1');
-		$html .= '<form method="POST" action="' . $search_url . '#locations-pro-search-form">';
-			$html .= '<div class="input_wrapper">';
-				$html .= '<label for="your_location">Your Location:</label>';
-				$html .= '<input name="your_location" id="your_location" type="text" value="' . htmlentities($current_search) . '"/>';
-			$html .= '</div>';			
+		$search_url = add_query_arg( 'search_locations', '1'); // built in WP function, adds our argument to current URL
+		$search_url .= '#' . $this->shortcode_atts['id']; // add ID fragment to URL so that we jump down to the form upon searching
+		$html .= sprintf('<form method="POST" action="%s">', $search_url);
+			// add search input
+			$html .= sprintf('<div class="%s">', $this->shortcode_atts['input_wrapper_class']);
+				$html .= sprintf('<label for="%s">%s</label>', $this->shortcode_atts['search_input_id'], $this->shortcode_atts['search_input_label']);
+				$html .= sprintf('<input name="your_location" id="%s" class="%s" type="text" value="%s" />', $this->shortcode_atts['search_input_id'], $this->shortcode_atts['search_input_class'], htmlentities($current_search));
+			$html .= '</div>';
+			
+			// add search radius dropdown
 			if($show_search_radius){
-				$html .= '<div class="input_wrapper">';
-				$html .= '<label for="search_radius">Show Locations Within:</label>';	
-					$html .= '<select name="search_radius" id="search_radius">';					
-						$options = array(
-							'5' => '',
-							'10' => '',
-							'25' => '',
-							'50' => '',
-							'100' => '',
-							'500' => '',
-						);
-						
-						if(isset($_REQUEST['search_radius'])){
-							$search_radius = $_REQUEST['search_radius'];
-							$options[$search_radius] = 'selected="selected"';
-						}
-							
-						foreach($options as $distance => $selected){
-							$html .= '<option value="' . $distance . '" ' . $selected . '>' . $distance . ' ' . $miles_or_km . '</option>';
-						}
-					$html .= '</select>';
-				$html .= '</div>';
+				$html .= $this->get_search_radius_select($miles_or_km);
 			}
-							
+			
+			// add category select dropdown
 			if($show_category_select){
-				$html .= '<div class="input_wrapper">';
-				$html .= '<label for="location_category">Filter Results By:</label>';	
-					$html .= '<select multiple name="location_category[]" id="location_category">';
-					foreach($location_categories as $cat):
-						$html .= '<option value=" ' . $cat->slug . ' " ' . $selected . '>' . $cat->name . '</option>';
-					endforeach;
-					$html .= '</select>';
-					$html .= '<p class="description">Leave empty to show All Locations.</p>';
-				$html .= '</div>';
+				$html .= $this->get_search_category_select($location_categories);
 			}
-			$html .= '<div class="input_wrapper submit_wrapper">';
-				$html .= '<button type="submit" class="btn btn-search">Search Now</button>';
+
+			// add the submit button
+			$search_button_class_str = sprintf(' class="%s"', $this->shortcode_atts['search_button_class']);			
+			$html .= sprintf('<div class="%s submit_wrapper">', $this->shortcode_atts['input_wrapper_class']);
+				$html .= sprintf('<button type="submit" %s>%s</button>', $search_button_class_str, $this->shortcode_atts['search_button_label']);
 			$html .= '</div>';
 		$html .= '</form>';
 		return $html;
 	}
 	
+	function get_search_radius_select($miles_or_km)
+	{
+		$html = sprintf('<div class="%s">', $this->shortcode_atts['input_wrapper_class']);
+			$html .= sprintf('<label for="%s">%s</label>', $this->shortcode_atts['radius_select_id'], $this->shortcode_atts['radius_select_label']);
+			$html .= '<label for="search_radius">Show Locations Within:</label>';	
+			$html .= sprintf('<select name="search_radius" id="%s">', $this->shortcode_atts['radius_select_id']);
+				$options = array(
+					'5' => '',
+					'10' => '',
+					'25' => '',
+					'50' => '',
+					'100' => '',
+					'500' => '',
+				);
+				
+				if(isset($_REQUEST['search_radius'])) {
+					$search_radius = $_REQUEST['search_radius'];
+					$options[$search_radius] = 'selected="selected"';
+				}
+					
+				foreach($options as $distance => $selected) {
+					$html .= '<option value="' . $distance . '" ' . $selected . '>' . $distance . ' ' . $miles_or_km . '</option>';
+				}
+			$html .= '</select>';
+		$html .= '</div>';		
+		return $html;
+	}
+	
+	function get_search_category_select($location_categories) //, $select_label = '', $description = '', $allow_multi = true, $input_wrapper_class = '')
+	{
+		$select_label = $this->shortcode_atts['category_select_label'];
+		$select_description = $this->shortcode_atts['category_select_description'];
+		$allow_multi = $this->shortcode_atts['allow_multiple_categories'];
+		$input_wrapper_class = $this->shortcode_atts['input_wrapper_class'];
+		
+		// TODO: wire up selected so it respects the current category
+		// TODO: replace mutiselect with checkboxes
+		$selected = '';
+		$multi_str = ($allow_multi ? ' multiple="multiple"': '');		
+
+		$html = sprintf('<div class="%s">', $this->shortcode_atts['input_wrapper_class']);
+			$html .= sprintf('<label for="%s">%s</label>', $this->shortcode_atts['category_select_id'], $select_label);	
+			$html .= sprintf('<select name="location_category[]" id="%s" %s>', $this->shortcode_atts['category_select_id'], $multi_str);
+			foreach($location_categories as $cat) {
+				$html .= '<option value=" ' . $cat->slug . ' " ' . $selected . '>' . $cat->name . '</option>';
+			}
+			$html .= '</select>';
+			if (!empty($select_description)) {
+				$html .= sprintf('<p class="description">%s</p>', $select_description);
+			}
+		$html .= '</div>';
+	}
+	
 	/* Given a starting address, returns all locations within the specified radius, sorted by distance from the starting address (closest location first)
 	 * Note: this function assumes that the locations have already been geocoded
  	*/
-	function find_nearest_locations($starting_address, $radius_in_miles, &$origin = false, $category = false)
+	function find_nearest_locations($starting_address, $radius_in_miles, &$origin = false, $category = '')
 	{
 		global $wpdb;
 	
@@ -570,59 +640,37 @@ class LocationsPlugin extends GoldPlugin
 		
 	}
 	
-	function find_locations_within_bounds($min_lat, $max_lat, $min_lng, $max_lng, $origin, $category = false)
+	function find_locations_within_bounds($min_lat, $max_lat, $min_lng, $max_lng, $origin, $category = '')
 	{
 		//TBD: support paginating search results		
 		
-		//use different query if categories are passd
-		if(!$category){
-			$args = array(
-				'post_type' => 'location',
-				'meta_query' => array(
-					array(
-						'key' => '_ikcf_latitude',
-						'value' => array ($min_lat, $max_lat) ,
-						'type' => 'DECIMAL',
-						'compare' => 'BETWEEN'
-					),
-					array(
-						'key' => '_ikcf_longitude',
-						'value' => array ($min_lng, $max_lng) ,
-						'type' => 'DECIMAL',
-						'compare' => 'BETWEEN'
-					)
+		$args = array(
+			'post_type' => 'location',
+			'meta_query' => array(
+				array(
+					'key' => '_ikcf_latitude',
+					'value' => array ($min_lat, $max_lat) ,
+					'type' => 'DECIMAL',
+					'compare' => 'BETWEEN'
 				),
-				'posts_per_page' => -1,
-				'suppress_filters' => false
+				array(
+					'key' => '_ikcf_longitude',
+					'value' => array ($min_lng, $max_lng) ,
+					'type' => 'DECIMAL',
+					'compare' => 'BETWEEN'
+				)
+			),
+			'posts_per_page' => -1,
+			'suppress_filters' => false
+		);
+
+		// add category parameter to query if needed
+		if( !empty($category) ) {
+			$args['tax_query'] = array(
+				'taxonomy' => 'location-categories',
+				'field'    => 'slug',
+				'terms'    => $category
 			);
-		} else {
-			// setup the arguments for WP_Query to find locations within this lat/lng range
-			$args = array(
-				'post_type' => 'location',
-				'meta_query' => array(
-					array(
-						'key' => '_ikcf_latitude',
-						'value' => array ($min_lat, $max_lat) ,
-						'type' => 'DECIMAL',
-						'compare' => 'BETWEEN'
-					),
-					array(
-						'key' => '_ikcf_longitude',
-						'value' => array ($min_lng, $max_lng) ,
-						'type' => 'DECIMAL',
-						'compare' => 'BETWEEN'
-					)
-				),
-				'tax_query' => array(
-					array(
-						'taxonomy' => 'location-categories',
-						'field'    => 'slug',
-						'terms'    => $category,
-					)
-				),
-				'posts_per_page' => -1,
-				'suppress_filters' => false
-			);	
 		}
 		
 		// see if any locations match. if so, return the results. if not, return an empty array
@@ -637,9 +685,6 @@ class LocationsPlugin extends GoldPlugin
 				$query->next_post();
 				$myId = $query->post->ID;
 				$loc = $this->get_location_metadata($myId);
-				$loc['title'] = get_the_title($myId);
-				$loc['lat'] = get_post_meta($myId, '_ikcf_latitude', true);
-				$loc['lng'] = get_post_meta($myId, '_ikcf_longitude', true);
 							
 				// calculate the distance, and add it as a key
 				$miles_or_km = get_option('loc_p_miles_or_km', 'miles');
@@ -910,7 +955,6 @@ class LocationsPlugin extends GoldPlugin
 
 	}
 	
-	
 	// returns a list of all locations in the database, sorted by the title, ascending
 	private function get_all_locations()
 	{
@@ -919,10 +963,10 @@ class LocationsPlugin extends GoldPlugin
 							'order_by' => 'title',
 							'order' => 'ASC',
 					);
-		$all_locations = get_posts($conditions);	
+		$all_locations = get_posts($conditions);
 		return $all_locations;
 	}
-	
+
 	// returns a list of a location in the database, based on the ID passed
 	private function get_a_location($id = '')
 	{
@@ -978,7 +1022,9 @@ class LocationsPlugin extends GoldPlugin
 		$ret['fax'] = $this->get_option_value($loc->ID, 'fax','');
 		$ret['email'] = $this->get_option_value($loc->ID, 'email','');
 		$ret['website_url'] = $this->get_option_value($loc->ID, 'website_url','');
-		$ret['add_map'] = $this->get_option_value($loc->ID, 'show_map', false);		
+		$ret['add_map'] = $this->get_option_value($loc->ID, 'show_map', false);
+		$ret['lat'] = $this->get_option_value($loc->ID, 'latitude', '');
+		$ret['lng'] = $this->get_option_value($loc->ID, 'longitude', '');
 		return $ret;
 	}
 	

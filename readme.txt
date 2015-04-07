@@ -3,7 +3,7 @@ Contributors: ghuger, richardgabriel
 Tags: locations, business locations, business maps, maps, business address map
 Requires at least: 3.0.1
 Tested up to: 4.1.1
-Stable tag: 1.7
+Stable tag: 1.8
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -128,6 +128,9 @@ https://developers.google.com/maps/documentation/javascript/tutorial#api_key
 
 == Changelog ==
 
+= 1.8 =
+* Adds Shortcode options for IDs, Classes, Button Text, Display Text, Map Height, Map Width, and more!
+
 = 1.7 =
 * Feature: Adds ability to Export your Locations
 * Update: Updates the functionality of the CSV Importer to support more malleable field structure.
@@ -170,4 +173,4 @@ https://developers.google.com/maps/documentation/javascript/tutorial#api_key
 
 == Upgrade Notice ==
 
-* 1.7: CSV Import / Export Upgrade!
+* 1.8: Adds Shortcode options for IDs, Classes, Button Text, Display Text, Map Height, Map Width, and more!
