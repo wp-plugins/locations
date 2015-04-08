@@ -4,7 +4,7 @@ Plugin Name: Locations
 Plugin Script: locations.php
 Plugin URI: http://goldplugins.com/our-plugins/locations/
 Description: List your business' locations and show a map for each one.
-Version: 1.8
+Version: 1.9
 Author: GoldPlugins
 Author URI: http://goldplugins.com/
 
@@ -73,8 +73,22 @@ class LocationsPlugin extends GoldPlugin
 		/* Add a menu item for the Help & Instructions page */
 		add_action('admin_menu', array($this, 'add_locations_help_page')); 		
 
+		/* Enable custom templates (currently only available for single locations) */
+		add_filter('the_content', array($this, 'single_location_content_filter'));
+		
 		/* Add any hooks that the base class has setup */
 		parent::add_hooks();
+	}
+	
+	function single_location_content_filter($content)
+	{
+		if ( is_single() && get_post_type() == 'location' ) {
+			global $location_data;
+			$location_data = $this->get_location_data_for_post();
+			$template_content = $this->get_template_content('single-location-content.php');
+			return $template_content;
+		}
+		return $content;
 	}
 	
 	/* Creates the Locations custom post type */
@@ -188,7 +202,7 @@ class LocationsPlugin extends GoldPlugin
 			'locations-js',
 			$jsUrl,
 			array( 'jquery' ),
-			false,
+			'1.9',
 			true
 		);   
 	}
@@ -219,6 +233,7 @@ class LocationsPlugin extends GoldPlugin
 							'show_category_select' => false,
 							'show_search_radius' => false,
 							'show_search_results' => true,
+							'link_search_results' => false,
 							'map_width' => '550px',
 							'map_height' => '500px',
 							'map_class' => '',
@@ -430,7 +445,7 @@ class LocationsPlugin extends GoldPlugin
 				$html .= $this->get_map_canvas_html();
 				$html .= '<ol class="locations_search_results">';
 				foreach ( $nearest_locations as $loc ) {
-					$html .= $this->store_locator_item_html($loc);
+					$html .= $this->store_locator_item_html($loc, $this->shortcode_atts['link_search_results']);
 					$markers[] = $this->store_locator_item_build_marker_data($loc);
 				}
 				$html .= '</ol>';
@@ -474,11 +489,45 @@ class LocationsPlugin extends GoldPlugin
 		$html .= '<script type="text/javascript">';
 		$html .= 'var $_gp_map_locations = ' . json_encode($markers) . ';';
 		$html .= 'var $_gp_map_center = ' . json_encode($origin) . ';';
+		// output the maps template as well
+		$html .= 'var $_gp_map_info_window_template = ' . json_encode($this->get_google_maps_info_window_template()) . ';';
 		$html .= '</script>';	
 		return $html;
 	}
 	
-	function store_locator_item_html($loc)
+	function get_google_maps_info_window_template()
+	{
+		return $this->get_template_content('google-maps-info-window.php');
+	}
+	
+	function get_template_content($template_name, $default_content = '')
+	{	
+		$template_path = $this->get_template_path($template_name);
+		if (file_exists($template_path)) {
+			// load template by including it in an output buffer, so that variables and PHP will be run
+			ob_start();
+			include($template_path);
+			$content = ob_get_contents();
+			ob_end_clean();
+			return $content;
+		}
+		// couldn't find a matching template file, so return the default content instead
+		return $default_content;
+	}
+	
+	function get_template_path($template_name)
+	{
+		// checks if the file exists in the theme first,
+		// otherwise serve the file from the plugin
+		if ( $theme_file = locate_template( array ( $template_name ) ) ) {
+			$template_path = $theme_file;
+		} else {
+			$template_path = plugin_dir_path( __FILE__ ) . 'templates/' . $template_name;
+		}
+		return $template_path;
+	}
+	
+	function store_locator_item_html($loc, $link_title = false)
 	{
 		$html = '';
 		$addr = htmlentities($loc['street_address']);
@@ -488,7 +537,13 @@ class LocationsPlugin extends GoldPlugin
 		}
 		
 		$html .= '<li class="location noPhoto">';
-			$html .= '<h3>' . $loc['title'] . '</h3>';
+			if ($link_title) {
+				// link the title (specified in the shortcode)
+				$html .= sprintf('<h3><a href="%s">%s</a></h3>', get_permalink($loc['ID']), $loc['title']);
+			} else {
+				// don't link the title (default)
+				$html .= sprintf('<h3>%s</h3>', $loc['title']);
+			}
 			$html .= '<div class="address"><div class="addr">' . $addr . '</div><div class="city_state_zip"><span class="city">' . htmlentities($loc['city']) . ', <span class="state">' . htmlentities($loc['state']) . ' <span class="zipcode">' . htmlentities($loc['zipcode']) . '</span></span></span></div></div>';
 			$html .= '<div class="phone-wrapper"><strong>Phone:</strong> <span class="num phone">' . htmlentities($loc['phone']) . '</span></div>';
 			$html .= '<div class="distance-wrapper"><em>' . htmlentities($loc['distance']) . ' ' . $miles_or_km . ' away</em></div>';
@@ -507,10 +562,17 @@ class LocationsPlugin extends GoldPlugin
 		$data = array(
 				'title' => html_entity_decode($loc['title']),
 				'address' => $js_address, 
+				'street_address' => $loc['street_address'], 
+				'street_address_line_2' => $loc['street_address_line_2'], 
+				'city' => $loc['city'], 
+				'state' => $loc['state'], 
+				'zipcode' => $loc['zipcode'], 
 				'distance' => $loc['distance'], 
 				'phone' => $loc['phone'], 
 				'lat' => $loc['lat'], 
-				'lng' => $loc['lng'] 
+				'lng' => $loc['lng'],
+				'ID' => $loc['ID'],
+				'permalink' => get_permalink($loc['ID'])
 		);
 
 		$showEmail = get_option('loc_p_show_email', true);
@@ -893,7 +955,7 @@ class LocationsPlugin extends GoldPlugin
 			$img_src = wp_get_attachment_image_src($post_thumbnail_id, 'medium');
 			$banner_style = "background-image: url('" . $img_src[0] . "');";
 			$img_html .= '<div class="location-photo" style="' . $banner_style . '">';
-			$img_html .= '</div>'; // <!--.location-photo>
+			$img_html .= '</div>'; // <!--.location-photo-->
 		}
 		
 		return $img_html;
@@ -1012,6 +1074,7 @@ class LocationsPlugin extends GoldPlugin
 	{
 		$ret = array();
 		$loc = get_post($post_id);
+		$ret['ID'] = $loc->ID;
 		$ret['title'] = $loc->post_title;
 		$ret['street_address'] = $this->get_option_value($loc->ID, 'street_address','');
 		$ret['street_address_line_2'] = $this->get_option_value($loc->ID, 'street_address_line_2','');
@@ -1028,7 +1091,31 @@ class LocationsPlugin extends GoldPlugin
 		return $ret;
 	}
 	
-		 
+	function get_location_data_for_post()
+	{
+		global $post;
+		$location_data = $this->get_location_metadata($post->ID);
+		
+		//normalize some vars from "yes"/"no" and 1/0 to true/false
+		$location_data['show_map'] = ($location_data['add_map'] == 'yes');
+		$location_data['show_email'] = (get_option('loc_p_show_email', true) == 1);
+		$location_data['show_fax'] = (get_option('loc_p_show_fax_number', true) == 1);
+		
+		// add google maps URLs
+		$full_address = $location_data['street_address'];
+		if (!empty($location_data['street_address_line_2'])) {
+			$full_address .= ', ' . $location_data['street_address_line_2'];
+		}	
+		$full_address .=  ' ' . $location_data['city'] . ', ' . $location_data['state'] . ' ' . $location_data['zipcode'];		
+		
+		$enc_address = urlencode($full_address);
+		$location_data['google_maps_url'] = 'https://maps.google.com/?q=' . $enc_address;
+		$location_data['google_maps_iframe_url'] = 'https://maps.google.com/maps?f=q&amp;source=s_q&amp;hl=en&amp;geocode=&amp;q=' . $enc_address . '&amp;t=h&amp;ie=UTF8&amp;hq=&amp;hnear=' . $enc_address . '&amp;z=14&amp;output=embed';
+		$location_data['google_maps_directions_url'] = 'https://maps.google.com/maps?saddr=current+location&daddr=' . urlencode($full_address);
+		
+		return $location_data;
+	}	
+				 
 	//this is the heading of the new column we're adding to the locations posts list
 	function locations_column_head($defaults) {  
 		$defaults = array_slice($defaults, 0, 2, true) +
