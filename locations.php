@@ -4,7 +4,7 @@ Plugin Name: Locations
 Plugin Script: locations.php
 Plugin URI: http://goldplugins.com/our-plugins/locations/
 Description: List your business' locations and show a map for each one.
-Version: 1.9
+Version: 1.9.1
 Author: GoldPlugins
 Author URI: http://goldplugins.com/
 
@@ -56,6 +56,9 @@ class LocationsPlugin extends GoldPlugin
 	{
 		/* Remove unneeded meta boxes from the Locations custom post type */
 		add_action('init', array($this, 'remove_features_from_locations'));
+		
+		/* Look for Export requests */
+		add_action('admin_init', array($this, 'process_export'));
 
 		/* Create the shortcodes */
 		add_shortcode('locations', array($this, 'locations_shortcode'));
@@ -212,6 +215,12 @@ class LocationsPlugin extends GoldPlugin
 	{
 		$cssUrl = plugins_url( 'assets/css/locations.css' , __FILE__ );
 		$this->add_stylesheet('wp-locations-css',  $cssUrl);
+				
+		if (is_admin()) {
+			$adminCssUrl = plugins_url( 'assets/css/admin_style.css' , __FILE__ );
+			wp_register_style( 'wp-locations-admin-css', $adminCssUrl );
+			wp_enqueue_style( 'wp-locations-admin-css' );
+		}
 				
 		//add JS
 		add_action( 'wp_enqueue_scripts', array($this, 'locations_add_script' ));
@@ -627,7 +636,6 @@ class LocationsPlugin extends GoldPlugin
 	{
 		$html = sprintf('<div class="%s">', $this->shortcode_atts['input_wrapper_class']);
 			$html .= sprintf('<label for="%s">%s</label>', $this->shortcode_atts['radius_select_id'], $this->shortcode_atts['radius_select_label']);
-			$html .= '<label for="search_radius">Show Locations Within:</label>';	
 			$html .= sprintf('<select name="search_radius" id="%s">', $this->shortcode_atts['radius_select_id']);
 				$options = array(
 					'5' => '',
@@ -902,9 +910,18 @@ class LocationsPlugin extends GoldPlugin
 		$fax = $this->get_option_value($loc->ID, 'fax','');
 		$email = $this->get_option_value($loc->ID, 'email','');
 		$website_url = $this->get_option_value($loc->ID, 'website_url','');
-		$add_map = $this->get_option_value($loc->ID, 'show_map', false);
 		$showEmail = get_option('loc_p_show_email', true);
 		$showFax = get_option('loc_p_show_fax_number', true);		
+		
+		$show_map = get_option('loc_p_show_map', 'per_location');
+		if ($show_map == 'always') {
+			$add_map = true;
+		} else if ($show_map == 'never') {
+			$add_map = false;
+		} else { // per location
+			$add_map = $this->get_option_value($loc->ID, 'show_map', false);
+		}
+
 		
 		// start building the HTML for this location
 		$html = '';
@@ -1085,9 +1102,19 @@ class LocationsPlugin extends GoldPlugin
 		$ret['fax'] = $this->get_option_value($loc->ID, 'fax','');
 		$ret['email'] = $this->get_option_value($loc->ID, 'email','');
 		$ret['website_url'] = $this->get_option_value($loc->ID, 'website_url','');
-		$ret['add_map'] = $this->get_option_value($loc->ID, 'show_map', false);
 		$ret['lat'] = $this->get_option_value($loc->ID, 'latitude', '');
 		$ret['lng'] = $this->get_option_value($loc->ID, 'longitude', '');
+		
+		// the show_map setting can be overriden on the settings panel, so we'll determine it now
+		$show_map = get_option('loc_p_show_map', 'per_location');
+		if ($show_map == 'always') {
+			$ret['add_map'] = true;
+		} else if ($show_map == 'never') {
+			$ret['add_map'] = false;
+		} else { // per location
+			$ret['add_map'] = $this->get_option_value($loc->ID, 'show_map', false);
+		}
+		
 		return $ret;
 	}
 	
@@ -1097,9 +1124,9 @@ class LocationsPlugin extends GoldPlugin
 		$location_data = $this->get_location_metadata($post->ID);
 		
 		//normalize some vars from "yes"/"no" and 1/0 to true/false
-		$location_data['show_map'] = ($location_data['add_map'] == 'yes');
-		$location_data['show_email'] = (get_option('loc_p_show_email', true) == 1);
-		$location_data['show_fax'] = (get_option('loc_p_show_fax_number', true) == 1);
+		$location_data['show_map'] = $this->normalize_truthy_value( $location_data['add_map'] );
+		$location_data['show_email'] = $this->normalize_truthy_value( get_option('loc_p_show_email', true) );
+		$location_data['show_fax'] = $this->normalize_truthy_value( get_option('loc_p_show_fax_number', true) );
 		
 		// add google maps URLs
 		$full_address = $location_data['street_address'];
@@ -1114,7 +1141,14 @@ class LocationsPlugin extends GoldPlugin
 		$location_data['google_maps_directions_url'] = 'https://maps.google.com/maps?saddr=current+location&daddr=' . urlencode($full_address);
 		
 		return $location_data;
-	}	
+	}
+
+	function normalize_truthy_value($input)
+	{
+		$input = strtolower($input);
+		$truthy_values = array('yes', 'y', '1', 1, 'true', true);
+		return in_array($input, $truthy_values);
+	}
 				 
 	//this is the heading of the new column we're adding to the locations posts list
 	function locations_column_head($defaults) {  
@@ -1155,12 +1189,18 @@ class LocationsPlugin extends GoldPlugin
 		// Check that the user is allowed to update options
 		if (!current_user_can('manage_options')) {
 			wp_die('You do not have sufficient permissions to access this page.');
-		}	
-
+		}
+		
 		$plugin_options = array();
 		$plugin_options[] = array('name' => 'loc_p_google_maps_api_key', 'label' => 'Google Geocoder API Key', 'desc' => 'Without a Google Geocoder API key, your plugin may not work. Get your API key <a href="https://developers.google.com/maps/documentation/geocoding/#api_key" target="_blank">here</a>.' );
 		$plugin_options[] = array('name' => 'loc_p_show_fax_number', 'label' => 'Show Fax Number', 'type' => 'checkbox', 'default' => '1');
 		$plugin_options[] = array('name' => 'loc_p_show_email', 'label' => 'Show Email', 'type' => 'checkbox', 'default' => '1');
+		$plugin_options[] = array('name' => 'loc_p_show_map', 
+						   'label' => 'Show Google Maps',
+						   'desc' => '',
+						   'type' => 'radio',
+						   'options' => array('per_location' => 'Use Location\'s Own Setting', 'always' => 'Always show Google Maps', 'never' => 'Never show Google Maps'),
+						   'default' => 'per_location' );
 		
 		$pro_options = array();
 		$pro_options[] = array('name' => 'loc_p_miles_or_km', 'label' => 'Miles or Kilometers', 'desc' => 'Should the store locator show distances in miles or kilometers?', 'type' => 'radio', 'options' => array('miles' => 'Miles', 'km' => 'Kilometers'), 'default' => 'miles' );
@@ -1274,14 +1314,13 @@ class LocationsPlugin extends GoldPlugin
 				<h3>Locations Importer</h3>	
 				<?php 
 					//CSV Importer
-					$importer = new locationsImporter($this);
-					$importer->csv_importer();
+					$importer = new LocationsPlugin_Importer($this);
+					$importer->csv_importer(); // outputs form and handles input. TODO: break into 2 functions (one to show form, one to process input)
 				?>
 				<h3>Locations Exporter</h3>	
 				<?php 
 					//CSV Exporter
-					$exporter = new locationsExporter();
-					$exporter->csv_exporter();
+					LocationsPlugin_Exporter::output_form();
 				?>
 			</form>
 		</div>
@@ -1556,6 +1595,17 @@ class LocationsPlugin extends GoldPlugin
 		}
 			
 		return false;
+	}
+	
+	/* Looks for a special POST value, and if its found, outputs a CSV of locations */
+	function process_export()
+	{
+		// look for an Export command first
+		if (isset($_POST['_gp_do_export']) && $_POST['_gp_do_export'] == '_gp_do_export') {
+			$exporter = new LocationsPlugin_Exporter();
+			$exporter->process_export();
+			exit();
+		}
 	}
 
 }

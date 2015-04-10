@@ -3,7 +3,7 @@ Contributors: ghuger, richardgabriel
 Tags: locations, business locations, business maps, maps, business address map
 Requires at least: 3.0.1
 Tested up to: 4.1.1
-Stable tag: 1.9
+Stable tag: 1.9.1
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -128,6 +128,9 @@ https://developers.google.com/maps/documentation/javascript/tutorial#api_key
 
 == Changelog ==
 
+= 1.9.1 =
+* Exporter Fixes and Updates; Global Option to Show Map in Single View
+
 = 1.9 =
 * Adds customizeable templates for the Single Location view and the Store Locator's info windows
 
@@ -176,4 +179,4 @@ https://developers.google.com/maps/documentation/javascript/tutorial#api_key
 
 == Upgrade Notice ==
 
-* 1.9: Adds customizeable templates for the Single Location view and the store locator's info windows
+* 1.9.1: Exporter Fixes and Updates; Global Option to Show Map in Single View

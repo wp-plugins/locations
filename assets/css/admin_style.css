@@ -1,0 +1,19 @@
+.gp_upload_file_wrapper p:first-child {
+	font-weight: bold;
+	vertical-align: middle;
+	margin-bottom: 3px;
+}
+
+.gp_upload_file_wrapper #upload {
+	background-color: white;
+	font-weight: normal;
+	display: block;
+	padding: 4px;
+	margin-top: 6px;
+	margin-left: 2px;
+	border: 1px solid lightgray;
+}
+.gp_upload_file_wrapper p.submit {
+	margin-top: 3px;
+
+}

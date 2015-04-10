@@ -1,5 +1,5 @@
 <?php
-class locationsImporter
+class LocationsPlugin_Importer
 {
 	var $root;
 	
@@ -135,7 +135,9 @@ class locationsImporter
 			echo "<p><code>Name,Street Address,Street Address (line 2),City,State,Zipcode,Phone,Website,Email,Fax,Latitude,Longitude</code></p>";
 			echo "<p><strong>Please Note:</strong> the first line of the CSV will need to match the text in the above example, for the Import to work.  Depending on your server settings, you may need to run the import several times if your script times out.</p>";
 
+			echo '<div class="gp_upload_file_wrapper">';
 			wp_import_upload_form( add_query_arg('step', 1) );
+			echo '</div>';
 		} else {
 			$file = wp_import_handle_upload();
 
