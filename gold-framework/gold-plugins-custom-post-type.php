@@ -184,13 +184,17 @@ if(!class_exists("GoldPlugins_CustomPostType")):
 		* Save the new Custom Fields values
 		*/
 		function saveCustomFields( $post_id, $post ) {
-			//RWG: 1.30.14 - added isset($_POST[ 'my-custom-fields_wpnonce' ]) to prevent undefined index notices on new item creation
-			if ( isset($_POST[ 'my-custom-fields_wpnonce' ]) && !wp_verify_nonce( $_POST[ 'my-custom-fields_wpnonce' ], 'my-custom-fields' ) )
+			if ( isset($_POST[ 'my-custom-fields_wpnonce' ]) && !wp_verify_nonce( $_POST[ 'my-custom-fields_wpnonce' ], 'my-custom-fields' ) ){
 				return;
-			if ( !current_user_can( 'edit_post', $post_id ) )
+			}
+			if ( !current_user_can( 'edit_post', $post_id ) ){
 				return;
-			//if ( $post->post_type != 'page' && $post->post_type != 'post')//RWG
-			//	return;
+			}
+			// handle the case when the custom post is quick edited
+			// otherwise all custom meta fields are cleared out
+			if (isset($_POST['_inline_edit']) && wp_verify_nonce($_POST['_inline_edit'], 'inlineeditnonce') || isset($_REQUEST['bulk_edit'])){
+				  return;
+			}
 			foreach ( $this->customFields as $customField ) {
 				if ( current_user_can( $customField['capability'], $post_id ) ) {
 					if ( isset( $_POST[ $this->prefix . $customField['name'] ] ) && trim( $_POST[ $this->prefix . $customField['name'] ] ) ) {

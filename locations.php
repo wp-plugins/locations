@@ -4,7 +4,7 @@ Plugin Name: Locations
 Plugin Script: locations.php
 Plugin URI: http://goldplugins.com/our-plugins/locations/
 Description: List your business' locations and show a map for each one.
-Version: 1.9.1
+Version: 1.9.2
 Author: GoldPlugins
 Author URI: http://goldplugins.com/
 
@@ -217,13 +217,19 @@ class LocationsPlugin extends GoldPlugin
 		$this->add_stylesheet('wp-locations-css',  $cssUrl);
 				
 		if (is_admin()) {
-			$adminCssUrl = plugins_url( 'assets/css/admin_style.css' , __FILE__ );
-			wp_register_style( 'wp-locations-admin-css', $adminCssUrl );
-			wp_enqueue_style( 'wp-locations-admin-css' );
+			//add admin css
+			add_action( 'admin_enqueue_scripts', array($this, 'locations_add_admin_css' ));
 		}
 				
 		//add JS
 		add_action( 'wp_enqueue_scripts', array($this, 'locations_add_script' ));
+	}
+	
+	/* Enqueue Admin CSS */
+	function locations_add_admin_css(){
+		$adminCssUrl = plugins_url( 'assets/css/admin_style.css' , __FILE__ );
+		wp_register_style( 'wp-locations-admin-css', $adminCssUrl );
+		wp_enqueue_style( 'wp-locations-admin-css' );
 	}
 	
 	/* Shortcodes */
@@ -261,6 +267,7 @@ class LocationsPlugin extends GoldPlugin
 							'allow_multiple_categories' => true,
 							'radius_select_label' => 'Show Locations Within:',
 							'radius_select_id' => 'search_radius',							
+							'search_box_location' => 'below',							
 						);
 		$atts = shortcode_atts($defaults, $atts);	
 		$this->shortcode_atts = $atts;
@@ -275,6 +282,12 @@ class LocationsPlugin extends GoldPlugin
 			$html .= sprintf( '<h2 class="%s">%s</h2>', $atts['caption_class'], htmlentities($atts['caption']) );
 		}
 			
+		// add the search form
+		if ( in_array($atts['search_box_location'], array('above', 'top', 'both')) ) {
+			$current_search = isset($your_location) ? htmlentities($your_location) : '';
+			$html .= $this->store_locator_search_form_html($current_search, $atts['show_category_select'], $atts['show_search_radius']);
+		}
+
 		// if a search was requested, perform it now and show the results
 		if (isset($_REQUEST['search_locations']) && isset($_REQUEST['your_location']) && strlen(trim($_REQUEST['your_location'])) > 0)
 		{
@@ -335,8 +348,10 @@ class LocationsPlugin extends GoldPlugin
 		}
 
 		// add the search form
-		$current_search = isset($your_location) ? htmlentities($your_location) : '';
-		$html .= $this->store_locator_search_form_html($current_search, $atts['show_category_select'], $atts['show_search_radius']);
+		if ( in_array($atts['search_box_location'], array('below', 'bottom', 'both')) ) {
+			$current_search = isset($your_location) ? htmlentities($your_location) : '';
+			$html .= $this->store_locator_search_form_html($current_search, $atts['show_category_select'], $atts['show_search_radius']);
+		}
 		
 		// close the store_locator div and return the finished HTML
 		$html .= '</div>'; // <!--.store_locator-->
@@ -606,29 +621,31 @@ class LocationsPlugin extends GoldPlugin
 		$html = '';
 		$search_url = add_query_arg( 'search_locations', '1'); // built in WP function, adds our argument to current URL
 		$search_url .= '#' . $this->shortcode_atts['id']; // add ID fragment to URL so that we jump down to the form upon searching
-		$html .= sprintf('<form method="POST" action="%s">', $search_url);
-			// add search input
-			$html .= sprintf('<div class="%s">', $this->shortcode_atts['input_wrapper_class']);
-				$html .= sprintf('<label for="%s">%s</label>', $this->shortcode_atts['search_input_id'], $this->shortcode_atts['search_input_label']);
-				$html .= sprintf('<input name="your_location" id="%s" class="%s" type="text" value="%s" />', $this->shortcode_atts['search_input_id'], $this->shortcode_atts['search_input_class'], htmlentities($current_search));
-			$html .= '</div>';
-			
-			// add search radius dropdown
-			if($show_search_radius){
-				$html .= $this->get_search_radius_select($miles_or_km);
-			}
-			
-			// add category select dropdown
-			if($show_category_select){
-				$html .= $this->get_search_category_select($location_categories);
-			}
+		$html .= '<div class="store_locator_search_form_wrapper">';
+			$html .= sprintf('<form method="POST" action="%s">', $search_url);
+				// add search input
+				$html .= sprintf('<div class="%s">', $this->shortcode_atts['input_wrapper_class']);
+					$html .= sprintf('<label for="%s">%s</label>', $this->shortcode_atts['search_input_id'], $this->shortcode_atts['search_input_label']);
+					$html .= sprintf('<input name="your_location" id="%s" class="%s" type="text" value="%s" />', $this->shortcode_atts['search_input_id'], $this->shortcode_atts['search_input_class'], htmlentities($current_search));
+				$html .= '</div>';
+				
+				// add search radius dropdown
+				if($show_search_radius){
+					$html .= $this->get_search_radius_select($miles_or_km);
+				}
+				
+				// add category select dropdown
+				if($show_category_select){
+					$html .= $this->get_search_category_select($location_categories);
+				}
 
-			// add the submit button
-			$search_button_class_str = sprintf(' class="%s"', $this->shortcode_atts['search_button_class']);			
-			$html .= sprintf('<div class="%s submit_wrapper">', $this->shortcode_atts['input_wrapper_class']);
-				$html .= sprintf('<button type="submit" %s>%s</button>', $search_button_class_str, $this->shortcode_atts['search_button_label']);
-			$html .= '</div>';
-		$html .= '</form>';
+				// add the submit button
+				$search_button_class_str = sprintf(' class="%s"', $this->shortcode_atts['search_button_class']);			
+				$html .= sprintf('<div class="%s submit_wrapper">', $this->shortcode_atts['input_wrapper_class']);
+					$html .= sprintf('<button type="submit" %s>%s</button>', $search_button_class_str, $this->shortcode_atts['search_button_label']);
+				$html .= '</div>';
+			$html .= '</form>';
+		$html .= '</div>';
 		return $html;
 	}
 	

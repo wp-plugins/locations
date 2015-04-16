@@ -10,7 +10,7 @@ global $location_data;
 	<?php $post_thumbnail_src = get_the_post_thumbnail($location_data['ID'], 'thumbnail'); ?>
 	<?php if (!empty($post_thumbnail_src)): ?>
 	<div class="location_image_wrapper">
-		<img src="<?php echo $post_thumbnail_src?>" class="location_image" alt="Photo of Location" />
+		<?php echo $post_thumbnail_src; ?>
 	</div>
 	<?php endif; ?>
 
