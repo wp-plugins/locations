@@ -2,8 +2,8 @@
 Contributors: ghuger, richardgabriel
 Tags: locations, business locations, business maps, maps, business address map
 Requires at least: 3.0.1
-Tested up to: 4.1.1
-Stable tag: 1.9.2
+Tested up to: 4.2.1
+Stable tag: 1.9.3
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -128,6 +128,9 @@ https://developers.google.com/maps/documentation/javascript/tutorial#api_key
 
 == Changelog ==
 
+= 1.9.3 =
+* Bug fix
+
 = 1.9.2 =
 * Various small fixes, ability to move search box on store locator
 
@@ -182,4 +185,4 @@ https://developers.google.com/maps/documentation/javascript/tutorial#api_key
 
 == Upgrade Notice ==
 
-* 1.9.2: Various small fixes, ability to move search box on store locator
+* 1.9.3: Priority bug fix

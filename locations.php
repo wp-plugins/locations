@@ -4,7 +4,7 @@ Plugin Name: Locations
 Plugin Script: locations.php
 Plugin URI: http://goldplugins.com/our-plugins/locations/
 Description: List your business' locations and show a map for each one.
-Version: 1.9.2
+Version: 1.9.3
 Author: GoldPlugins
 Author URI: http://goldplugins.com/
 
@@ -622,7 +622,7 @@ class LocationsPlugin extends GoldPlugin
 		$search_url = add_query_arg( 'search_locations', '1'); // built in WP function, adds our argument to current URL
 		$search_url .= '#' . $this->shortcode_atts['id']; // add ID fragment to URL so that we jump down to the form upon searching
 		$html .= '<div class="store_locator_search_form_wrapper">';
-			$html .= sprintf('<form method="POST" action="%s">', $search_url);
+			$html .= sprintf('<form method="POST" action="%s">', esc_url($search_url));
 				// add search input
 				$html .= sprintf('<div class="%s">', $this->shortcode_atts['input_wrapper_class']);
 					$html .= sprintf('<label for="%s">%s</label>', $this->shortcode_atts['search_input_id'], $this->shortcode_atts['search_input_label']);
