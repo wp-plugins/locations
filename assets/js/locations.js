@@ -12,9 +12,9 @@ var $_gp_markers = [];
 function gp_initMap()
 {
 	var originLatLng = new google.maps.LatLng($_gp_map_center.lat, $_gp_map_center.lng);
-
+	var zoom = $_gp_map_locations.length > 0 ? 10 : 6;
 	var mapOptions = {
-		zoom: 11,
+		zoom: zoom,
 		center: originLatLng
 	};
 
@@ -94,7 +94,9 @@ function gp_addLocationMarkers($_gp_map_locations)
 		
 		markerBounds.extend(myPoint);
 	}
-	$_gp_map.fitBounds(markerBounds);
+	if ($_gp_map_locations.length > 0) {
+		$_gp_map.fitBounds(markerBounds);
+	}
 	
 }
 

@@ -2,8 +2,8 @@
 Contributors: ghuger, richardgabriel
 Tags: locations, business locations, business maps, maps, business address map
 Requires at least: 3.0.1
-Tested up to: 4.2.1
-Stable tag: 1.9.3
+Tested up to: 4.2.2
+Stable tag: 1.9.4
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -128,6 +128,10 @@ https://developers.google.com/maps/documentation/javascript/tutorial#api_key
 
 == Changelog ==
 
+= 1.9.4 =
+* Feature: Default latitude / longitude option for store locator
+* Bug fix: Show more than 5 results in [locations] shortcode by disabling paging
+
 = 1.9.3 =
 * Bug fix
 
@@ -185,4 +189,4 @@ https://developers.google.com/maps/documentation/javascript/tutorial#api_key
 
 == Upgrade Notice ==
 
-* 1.9.3: Priority bug fix
+* 1.9.4: Adds default lat/lng options, fixes minor bug
