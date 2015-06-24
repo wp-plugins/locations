@@ -15,31 +15,31 @@ global $location_data;
 	<?php endif; ?>
 
 	<!-- Address -->
-	<div class="address">
-		<p class="street_address"><?php echo htmlentities($location_data['street_address']); ?></p>
+	<div class="address adr">
+		<p class="street_address street-address"><?php echo htmlentities($location_data['street_address']); ?></p>
 		<?php if (!empty($location_data['street_address_line_2'])): ?>
-		<p class="street_address_line_2"><?php echo htmlentities($location_data['street_address_line_2']); ?></p>
+		<p class="street_address_line_2 extended-address"><?php echo htmlentities($location_data['street_address_line_2']); ?></p>
 		<?php endif;?>
 		<p class="city_state_zipcode">
-			<span class="city"><?php echo htmlentities($location_data['city']); ?></span>
-			<span class="state"><?php echo htmlentities($location_data['state']); ?></span>
-			<span class="zipcode"><?php echo htmlentities($location_data['zipcode']); ?></span>
+			<span class="city locality"><?php echo htmlentities($location_data['city']); ?></span>
+			<span class="state region"><?php echo htmlentities($location_data['state']); ?></span>
+			<span class="zipcode postal-code"><?php echo htmlentities($location_data['zipcode']); ?></span>
 		</p>
 	</div>
 
 	<!-- Phone -->
 	<?php if (!empty($location_data['phone'])): ?>
-	<p class="phone"><strong>Phone:</strong> <?php echo htmlentities($location_data['phone']); ?></p>
+	<p class="phone"><strong>Phone:</strong> <span class="tel"><?php echo htmlentities($location_data['phone']); ?></span></p>
 	<?php endif;?>
 
 	<!-- Fax -->
 	<?php if ($location_data['show_fax'] && !empty($location_data['fax'])): ?>
-	<p class="fax"><strong>Fax:</strong> <?php echo htmlentities($location_data['fax']); ?></p>
+	<p class="fax tel"><strong><span class="type">Fax</span>:</strong> <span class="value"><?php echo htmlentities($location_data['fax']); ?></span></p>
 	<?php endif;?>
 
 	<!-- Email -->
 	<?php if ($location_data['show_email'] && !empty($location_data['email'])): ?>
-	<p class="email"><strong>Email:</strong> <?php echo htmlentities($location_data['email']); ?></p>
+	<p class="email"><strong>Email:</strong> <span class="value"><?php echo htmlentities($location_data['email']); ?></span></p>
 	<?php endif;?>
 	
 	<!-- Google Map -->

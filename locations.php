@@ -4,7 +4,7 @@ Plugin Name: Locations
 Plugin Script: locations.php
 Plugin URI: http://goldplugins.com/our-plugins/locations/
 Description: List your business' locations and show a map for each one.
-Version: 1.9.4
+Version: 1.9.5
 Author: GoldPlugins
 Author URI: http://goldplugins.com/
 
@@ -78,6 +78,10 @@ class LocationsPlugin extends GoldPlugin
 
 		/* Enable custom templates (currently only available for single locations) */
 		add_filter('the_content', array($this, 'single_location_content_filter'));
+		
+		// add vcard classes to single location pages
+		add_filter( 'post_class', array($this, 'add_vcard_post_class') );
+		add_filter( 'the_title', array($this, 'add_vcard_title_class') );
 		
 		/* Add any hooks that the base class has setup */
 		parent::add_hooks();
@@ -1656,6 +1660,26 @@ class LocationsPlugin extends GoldPlugin
 			exit();
 		}
 	}
+	
+	function add_vcard_post_class( $classes ) 
+	{
+		global $post;
+		if ($post->post_type == 'location') {
+			$classes[] = 'vcard';
+		}
+		return $classes;
+	}
+	
+	function add_vcard_title_class( $title, $id = null )
+	{
+		global $post;
+		if ( $post->post_type == 'location' && is_single() ) {
+			return '<span class="fn org">' . $title . '</span>';
+		} else {
+			return $title;
+		}
+	}
+
 
 }
 $gp_lp = new LocationsPlugin();
