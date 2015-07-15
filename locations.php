@@ -4,7 +4,7 @@ Plugin Name: Locations
 Plugin Script: locations.php
 Plugin URI: http://goldplugins.com/our-plugins/locations/
 Description: List your business' locations and show a map for each one.
-Version: 1.9.5
+Version: 1.9.6
 Author: GoldPlugins
 Author URI: http://goldplugins.com/
 
@@ -41,7 +41,6 @@ class LocationsPlugin extends GoldPlugin
 		$this->add_hooks();
 		$this->add_stylesheets_and_scripts();				
 		$this->set_google_maps_api_key();	
-		add_filter('get_meta_sql',array($this,'cast_decimal_precision'));	
 		
 		parent::__construct();
 	}
@@ -82,6 +81,9 @@ class LocationsPlugin extends GoldPlugin
 		// add vcard classes to single location pages
 		add_filter( 'post_class', array($this, 'add_vcard_post_class') );
 		add_filter( 'the_title', array($this, 'add_vcard_title_class') );
+		
+		// add extra clause to queries that handle lat/lng
+		add_filter('get_meta_sql',array($this,'cast_decimal_precision'));			
 		
 		/* Add any hooks that the base class has setup */
 		parent::add_hooks();
@@ -675,31 +677,70 @@ class LocationsPlugin extends GoldPlugin
 		return $html;
 	}
 	
+	/*
+	 * Returns the HTML <select> box containing the search radius options.
+	 * Note: The default_radius option will be selected, 
+	 * 		 unless specified in the query string (i.e., after a search)
+	 */
 	function get_search_radius_select($miles_or_km)
 	{
 		$html = sprintf('<div class="%s">', $this->shortcode_atts['input_wrapper_class']);
 			$html .= sprintf('<label for="%s">%s</label>', $this->shortcode_atts['radius_select_id'], $this->shortcode_atts['radius_select_label']);
 			$html .= sprintf('<select name="search_radius" id="%s">', $this->shortcode_atts['radius_select_id']);
-				$options = array(
-					'5' => '',
-					'10' => '',
-					'25' => '',
-					'50' => '',
-					'100' => '',
-					'500' => '',
-				);
+				$default_radius = intval( get_option('loc_p_search_radius', 0) );
+				$options = $this->get_search_radius_options($default_radius);
 				
-				if(isset($_REQUEST['search_radius'])) {
-					$search_radius = $_REQUEST['search_radius'];
-					$options[$search_radius] = 'selected="selected"';
+				if( isset($_REQUEST['search_radius']) && intval($_REQUEST['search_radius']) > 0 ) {
+					$current_option = intval($_REQUEST['search_radius']);
+				} else {
+					$current_option = $default_radius;
 				}
-					
-				foreach($options as $distance => $selected) {
-					$html .= '<option value="' . $distance . '" ' . $selected . '>' . $distance . ' ' . $miles_or_km . '</option>';
+				
+				$template = '<option value="%s" %s>%s</option>';
+				foreach($options as $index => $distance) {
+					$selected = ($distance == $current_option) ? 'selected="selected"' : '';
+					$label = $distance . ' ' . $miles_or_km;
+					$html .= sprintf($template, $distance, $selected, $label);
 				}
+				
 			$html .= '</select>';
 		$html .= '</div>';		
 		return $html;
+	}
+	
+	/*
+	 * Returns an array of the possible options for the search radius drop down
+	 * Keys represent the numeric value of the options, while the value is left blank
+	 */
+	function get_search_radius_options($default_radius)
+	{
+		$options = array(
+			'5',
+			'10',
+			'25',
+			'50',
+			'100',
+			'500',
+		);
+				
+		// make sure the default radius is included	
+		// (and it must be between 0 and 1000 to be included)
+		if ($default_radius == 0) {
+			$default_radius = 10;
+		}
+
+		if ($default_radius > 1000) {
+			$default_radius = 1000;
+		}		
+
+		// if default_radius is not in options, add it now
+		if ( !in_array($default_radius, $options) ) {
+			$options[] = $default_radius;			
+			sort($options, SORT_NUMERIC); // need to resort the array now 
+		}
+				
+		// provide an opportunity for the user to override the options, then return them
+		return apply_filters('locations_search_radius_options', $options);
 	}
 	
 	function get_search_category_select($location_categories) //, $select_label = '', $description = '', $allow_multi = true, $input_wrapper_class = '')
