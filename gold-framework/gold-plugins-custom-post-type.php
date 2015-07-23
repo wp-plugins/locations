@@ -60,6 +60,7 @@ if(!class_exists("GoldPlugins_CustomPostType")):
 					'capability_type' => 'post',
 					'hierarchical' => false,
 					'supports' => array('title','editor','author','thumbnail','excerpt','comments','custom-fields'),
+					'menu_icon' => $postType['menu_icon']
 				); 
 				$this->customPostTypeArgs = $args;
 		

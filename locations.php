@@ -4,7 +4,7 @@ Plugin Name: Locations
 Plugin Script: locations.php
 Plugin URI: http://goldplugins.com/our-plugins/locations/
 Description: List your business' locations and show a map for each one.
-Version: 1.9.6
+Version: 1.10
 Author: GoldPlugins
 Author URI: http://goldplugins.com/
 
@@ -64,6 +64,9 @@ class LocationsPlugin extends GoldPlugin
 		if ($this->isValidKey()) {
 			add_shortcode('store_locator', array($this, 'store_locator_shortcode'));
 		}
+
+		/* Create the widgets */
+		add_action( 'widgets_init', array($this, 'locations_register_widgets' ));
 		
 		/* Customize the Locations "View All" list */
 		add_filter('manage_location_posts_columns', array($this, 'locations_column_head'), 10);  
@@ -89,6 +92,14 @@ class LocationsPlugin extends GoldPlugin
 		parent::add_hooks();
 	}
 	
+	function locations_register_widgets(){
+		require_once('widgets/single_location_widget.php');
+		require_once('widgets/locations_list_widget.php');
+
+		register_widget( 'singleLocationWidget' );
+		register_widget( 'locationsListWidget' );
+	}
+	
 	function single_location_content_filter($content)
 	{
 		if ( is_single() && get_post_type() == 'location' ) {
@@ -103,7 +114,7 @@ class LocationsPlugin extends GoldPlugin
 	/* Creates the Locations custom post type */
 	function create_post_types()
 	{
-		$postType = array('name' => 'Location', 'plural' => 'Locations', 'slug' => 'locations');
+		$postType = array('name' => 'Location', 'plural' => 'Locations', 'slug' => 'locations', 'menu_icon' => 'dashicons-location-alt');
 		$customFields = array();
 		//$customFields[] = array('name' => 'name', 'title' => 'Name', 'description' => 'Name of this location', 'type' => 'text');	
 		$customFields[] = array('name' => 'street_address', 'title' => 'Street Address', 'description' => 'Example: 127 North St.', 'type' => 'text');	
@@ -953,13 +964,14 @@ class LocationsPlugin extends GoldPlugin
 		$defaults = array(	'caption' => '',
 							'style' =>	'small',
 							'show_photos' => 'true',
-							'id' => ''
+							'id' => '',
+							'category' => ''
 						);
 		$atts = shortcode_atts($defaults, $atts);
 						
 		if(!is_numeric($atts['id'])){
-			// get a list of all the locations
-			$all_locations = $this->get_all_locations();
+			// get a list of all the locations			
+			$all_locations = $this->get_all_locations($atts);
 		} else {
 			$all_locations = $this->get_a_location($atts['id']);			
 			// get a specific location
@@ -977,7 +989,7 @@ class LocationsPlugin extends GoldPlugin
 		if ($all_locations && count($all_locations) > 0)
 		{		
 			foreach ($all_locations as $loc) {			
-				$html .= $this->build_location_html($loc);
+				$html .= $this->build_location_html($loc, $atts);
 			}
 		}
 		
@@ -988,7 +1000,7 @@ class LocationsPlugin extends GoldPlugin
 	
 	// generates the HTML for a single location. 
 	// NOTE: this is a helper function for the locations_shortcode function
-	private function build_location_html($loc)
+	private function build_location_html($loc, $atts)
 	{
 		// load the meta data for this location (name, address, zipcode, etc)
 		$title = $loc->post_title;
@@ -1004,6 +1016,9 @@ class LocationsPlugin extends GoldPlugin
 		$showEmail = get_option('loc_p_show_email', true);
 		$showFax = get_option('loc_p_show_fax_number', true);		
 		
+		// load any needed atts that came from the shortcode
+		$show_photo = isset($atts['show_photos']) ? $atts['show_photos'] : 'true';
+		
 		$show_map = get_option('loc_p_show_map', 'per_location');
 		if ($show_map == 'always') {
 			$add_map = true;
@@ -1017,8 +1032,11 @@ class LocationsPlugin extends GoldPlugin
 		// start building the HTML for this location
 		$html = '';
 		
-		// add the featured image, if one was specified
-		$img_html = $this->build_featured_image_html($loc);
+		// add the featured image, if one was specified and show photos is true
+		$img_html = '';
+		if($show_photo){
+			$img_html = $this->build_featured_image_html($loc);
+		}
 		$hasPhoto = (strlen($img_html) > 0);
 				
 		// start the location div. Add the hasPhoto or noPhoto class, depending on whether a featured image was specified
@@ -1126,7 +1144,7 @@ class LocationsPlugin extends GoldPlugin
 	}
 	
 	// returns a list of all locations in the database, sorted by the title, ascending
-	private function get_all_locations()
+	private function get_all_locations($atts)
 	{
 		$conditions = array('post_type' => 'location',
 							'post_count' => -1,
@@ -1134,6 +1152,18 @@ class LocationsPlugin extends GoldPlugin
 							'order' => 'ASC',
 							'nopaging' => true,
 					);
+			
+		//filter by category, if set to
+		if(isset($atts['category']) && strlen($atts['category'] > 0)){
+			$conditions['tax_query'] =	array(
+											array(
+												'taxonomy' => 'location-categories',
+												'field' => 'id',
+												'terms' => $atts['category']
+											)
+										);
+		}		
+		
 		$all_locations = get_posts($conditions);
 		return $all_locations;
 	}
@@ -1714,7 +1744,7 @@ class LocationsPlugin extends GoldPlugin
 	function add_vcard_title_class( $title, $id = null )
 	{
 		global $post;
-		if ( $post->post_type == 'location' && is_single() ) {
+		if ( isset($post->post_type) && $post->post_type == 'location' && is_single() ) {
 			return '<span class="fn org">' . $title . '</span>';
 		} else {
 			return $title;

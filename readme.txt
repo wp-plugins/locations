@@ -2,8 +2,8 @@
 Contributors: ghuger, richardgabriel
 Tags: locations, business locations, business maps, maps, business address map
 Requires at least: 3.0.1
-Tested up to: 4.2.2
-Stable tag: 1.9.6
+Tested up to: 4.2.3
+Stable tag: 1.10
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -128,6 +128,9 @@ https://developers.google.com/maps/documentation/javascript/tutorial#api_key
 
 == Changelog ==
 
+= 1.10 =
+* Adds Single Location Widget and Locations List Widget!
+
 = 1.9.6 =
 * Fix: Always include default value to search radius options
 
@@ -195,4 +198,4 @@ https://developers.google.com/maps/documentation/javascript/tutorial#api_key
 
 == Upgrade Notice ==
 
-* 1.9.6: Fix: always add default value to search radius options
+* 1.10: Adds Widgets!

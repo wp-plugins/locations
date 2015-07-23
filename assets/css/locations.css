@@ -9,6 +9,12 @@
 	overflow: hidden;
 }
 
+/* disable inline-block to prevent the widget from flowing out of its container */
+.singleLocationWidget .locations .location,
+.locationsListWidget .locations .location{
+	display: block;
+}
+
 .locations .location.hasPhoto
 {
 	padding: 170px 20px 25px;
