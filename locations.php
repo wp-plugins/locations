@@ -4,7 +4,7 @@ Plugin Name: Locations
 Plugin Script: locations.php
 Plugin URI: http://goldplugins.com/our-plugins/locations/
 Description: List your business' locations and show a map for each one.
-Version: 1.10
+Version: 1.11
 Author: GoldPlugins
 Author URI: http://goldplugins.com/
 
@@ -626,7 +626,7 @@ class LocationsPlugin extends GoldPlugin
 				'city' => $loc['city'], 
 				'state' => $loc['state'], 
 				'zipcode' => $loc['zipcode'], 
-				'distance' => $loc['distance'], 
+				'distance' => !empty($loc['distance']) ? $loc['distance'] : '', 
 				'phone' => $loc['phone'], 
 				'lat' => $loc['lat'], 
 				'lng' => $loc['lng'],
@@ -1144,7 +1144,7 @@ class LocationsPlugin extends GoldPlugin
 	}
 	
 	// returns a list of all locations in the database, sorted by the title, ascending
-	private function get_all_locations($atts)
+	private function get_all_locations($atts = array())
 	{
 		$conditions = array('post_type' => 'location',
 							'post_count' => -1,
