@@ -4,7 +4,7 @@ Plugin Name: Locations
 Plugin Script: locations.php
 Plugin URI: http://goldplugins.com/our-plugins/locations/
 Description: List your business' locations and show a map for each one.
-Version: 1.11
+Version: 1.11.1
 Author: GoldPlugins
 Author URI: http://goldplugins.com/
 
@@ -95,9 +95,11 @@ class LocationsPlugin extends GoldPlugin
 	function locations_register_widgets(){
 		require_once('widgets/single_location_widget.php');
 		require_once('widgets/locations_list_widget.php');
+		//require_once('widgets/store_locator_widget.php');
 
 		register_widget( 'singleLocationWidget' );
 		register_widget( 'locationsListWidget' );
+		//register_widget( 'storeLocatorWidget' );
 	}
 	
 	function single_location_content_filter($content)
@@ -242,11 +244,25 @@ class LocationsPlugin extends GoldPlugin
 		add_action( 'wp_enqueue_scripts', array($this, 'locations_add_script' ));
 	}
 	
+	
 	/* Enqueue Admin CSS */
-	function locations_add_admin_css(){
-		$adminCssUrl = plugins_url( 'assets/css/admin_style.css' , __FILE__ );
-		wp_register_style( 'wp-locations-admin-css', $adminCssUrl );
-		wp_enqueue_style( 'wp-locations-admin-css' );
+	function locations_add_admin_css($hook){
+		//RWG: only enqueue scripts and styles on Locations admin pages or widgets page
+		$screen = get_current_screen();
+		
+		if ( strpos($hook,'locations')!==false || $screen->id === "widgets" || is_customize_preview() ){
+			$adminCssUrl = plugins_url( 'assets/css/admin_style.css' , __FILE__ );
+			wp_register_style( 'wp-locations-admin-css', $adminCssUrl );
+			wp_enqueue_style( 'wp-locations-admin-css' );
+			
+			wp_enqueue_script(
+				'gp-admin_v2',
+				plugins_url('assets/js/gp-admin_v2.js', __FILE__),
+				array( 'jquery' ),
+				false,
+				true
+			);	
+		}
 	}
 	
 	/* Shortcodes */
@@ -1384,7 +1400,7 @@ class LocationsPlugin extends GoldPlugin
 			}
 		}
 ?>
-		<div class="wrap">
+		<div class="wrap locations-admin-wrap">
 			<h2>Locations Plugin Settings</h2>
 			<?php if (!$this->isValidKey()): ?>
 			<?php $this->mailing_list_signup(); ?>
@@ -1521,7 +1537,15 @@ class LocationsPlugin extends GoldPlugin
 	/* Outputs the mailing list sign-up form */
 	private function mailing_list_signup()
 	{
+		global $current_user;
 ?>
+		<script type="text/javascript">
+		jQuery(function () {
+			if (typeof(gold_plugins_init_coupon_box) == 'function') {
+				gold_plugins_init_coupon_box();
+			}
+		});
+		</script>
 		<!-- Begin MailChimp Signup Form -->
 		<style type="text/css">
 			/* MailChimp Form Embed Code - Slim - 08/17/2011 */
@@ -1618,15 +1642,27 @@ class LocationsPlugin extends GoldPlugin
 		</style>
 		<div id="signup_wrapper">
 			<div id="mc_embed_signup">
-				<form action="http://illuminatikarate.us2.list-manage2.com/subscribe/post?u=403e206455845b3b4bd0c08dc&amp;id=6ad78db648" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
+				<!--<form action="http://illuminatikarate.us2.list-manage2.com/subscribe/post?u=403e206455845b3b4bd0c08dc&amp;id=6ad78db648" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>-->
+				<form action="https://goldplugins.com/atm/atm.php?u=403e206455845b3b4bd0c08dc&amp;id=6ad78db648" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
 					<p class="special-offer">Special Offer:</p>
 					<h3>Sign-up for our mailing list now, and we'll give you a discount on Locations Pro!</h3>
-					<label for="mce-EMAIL">Your Email:</label>
-					<input type="email" value="" name="EMAIL" class="email" id="mce-EMAIL" placeholder="email address" required>
-					<!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
-					<div style="position: absolute; left: -5000px;"><input type="text" name="b_403e206455845b3b4bd0c08dc_6ad78db648" tabindex="-1" value=""></div>
-					<div class="clear"><input type="submit" value="Subscribe Now" name="subscribe" id="mc-embedded-subscribe" class="button"></div>
-					<p class="explain"><strong>What To Expect:</strong> <br/> As soon as you've confirmed your subscription, you'll receive a coupon code for a big discount on Locations Pro. After that, you'll receive about one email from us each month, jam-packed with special offers and tips for getting the most out of WordPress. Of course, you can unsubscribe at any time.</p>
+					<div class="fields_wrapper">
+						<label for="mce-NAME">Your Name:</label>
+						<input type="text" value="<?php echo (!empty($current_user->display_name) ?  $current_user->display_name : ''); ?>" name="NAME" class="name" id="mce-NAME" placeholder="Your Name">
+						<label for="mce-EMAIL">Your Email:</label>
+						<input type="email" value="<?php echo (!empty($current_user->user_email) ?  $current_user->user_email : ''); ?>" name="EMAIL" class="email" id="mce-EMAIL" placeholder="email address" required>
+						<!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+						<div style="position: absolute; left: -5000px;"><input type="text" name="b_403e206455845b3b4bd0c08dc_6ad78db648" tabindex="-1" value=""></div>
+					</div>
+					<div class="clear"><input type="submit" value="Send Me The Coupon Now" name="subscribe" id="mc-embedded-subscribe" class="smallBlueButton"></div>
+					<p class="secure"><img src="<?php echo plugins_url( 'assets/img/lock.png', __FILE__ ); ?>" alt="Lock" width="16px" height="16px" />We respect your privacy.</p>
+					
+					<input type="hidden" id="mc-upgrade-plugin-name" name="mc-upgrade-plugin-name" value="Locations Pro" />
+					<input type="hidden" id="mc-upgrade-link-per" value="https://goldplugins.com/purchase/locations-pro/single?promo=newsub20" />
+					<input type="hidden" id="mc-upgrade-link-biz" value="https://goldplugins.com/purchase/locations-pro/business?promo=newsub20" />
+					<input type="hidden" id="mc-upgrade-link-dev" value="https://goldplugins.com/purchase/locations-pro/developer?promo=newsub20" />
+					
+					<input type="hidden" id="gold_plugins_already_subscribed" name="gold_plugins_already_subscribed" value="0" />
 				</form>
 			</div>
 			<p class="u_to_p"><a href="http://goldplugins.com/our-plugins/locations/?utm_source=plugin&utm_campaign=upgrade_now">Upgrade to Locations Pro now</a> to remove banners like this one.</p>
@@ -1634,6 +1670,8 @@ class LocationsPlugin extends GoldPlugin
 		<!--End mc_embed_signup-->
 <?php
 	}
+	
+	
 	
 	/* Renders the Locations Pro registration form */
 	function pro_registration_form()
@@ -1646,7 +1684,7 @@ class LocationsPlugin extends GoldPlugin
 						<label for="loc_p_registration_email">Email:</label>
 					</th>
 					<td>
-						<input type="text" id="loc_p_registration_email" name="loc_p_registration_email" size="25" value="" />
+						<input type="text" id="loc_p_registration_email" name="loc_p_registration_email" size="25" value="<?php echo get_option('loc_p_registration_email'); ?>" />
 						<!--<p class="description"></p>-->
 					</td>
 				</tr>
@@ -1664,7 +1702,7 @@ class LocationsPlugin extends GoldPlugin
 						<label for="loc_p_registration_api_key">API Key:</label>
 					</th>
 					<td>
-						<input type="text" id="loc_p_registration_api_key" name="loc_p_registration_api_key" size="25" value="" />
+						<input type="text" id="loc_p_registration_api_key" name="loc_p_registration_api_key" size="25" value="<?php echo get_option('loc_p_registration_api_key'); ?>" />
 						<!--<p class="description"></p>-->
 					</td>
 				</tr>
