@@ -20,9 +20,14 @@ Shout out to http://www.makeuseof.com/tag/how-to-create-wordpress-widgets/ for t
 
 class locationsListWidget extends WP_Widget
 {
-	function locationsListWidget(){
+	function __construct(){
 		$widget_ops = array('classname' => 'locationsListWidget', 'description' => 'Displays a list of all Locations.' );
-		$this->WP_Widget('locationsListWidget', 'Locations - All Locations', $widget_ops);
+		parent::__construct('locationsListWidget', 'Locations - All Locations', $widget_ops);
+	}
+
+	// PHP4 style constructor for backwards compatibility
+	function locationsListWidget() {
+		$this->__construct();
 	}
 
 	function form($instance){

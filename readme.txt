@@ -2,8 +2,8 @@
 Contributors: ghuger, richardgabriel
 Tags: locations, business locations, business maps, maps, business address map
 Requires at least: 3.0.1
-Tested up to: 4.2.4
-Stable tag: 1.11.1
+Tested up to: 4.3
+Stable tag: 1.11.2
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -127,6 +127,9 @@ https://developers.google.com/maps/documentation/javascript/tutorial#api_key
 3. This is a demo of a Location from the user side, with a map displayed.
 
 == Changelog ==
+
+= 1.11.2 =
+* Compatibilty updates for WordPress 4.3 (widget constructors)
 
 = 1.11.1 =
 * Admin Updates

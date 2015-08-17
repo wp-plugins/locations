@@ -4,7 +4,7 @@ Plugin Name: Locations
 Plugin Script: locations.php
 Plugin URI: http://goldplugins.com/our-plugins/locations/
 Description: List your business' locations and show a map for each one.
-Version: 1.11.1
+Version: 1.11.2
 Author: GoldPlugins
 Author URI: http://goldplugins.com/
 

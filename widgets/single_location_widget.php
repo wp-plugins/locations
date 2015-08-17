@@ -20,11 +20,16 @@ Shout out to http://www.makeuseof.com/tag/how-to-create-wordpress-widgets/ for t
 
 class singleLocationWidget extends WP_Widget
 {
-	function singleLocationWidget(){
+	function __construct(){
 		$widget_ops = array('classname' => 'singleLocationWidget', 'description' => 'Displays a single Location.' );
-		$this->WP_Widget('singleLocationWidget', 'Locations - Single Location', $widget_ops);
+		parent::__construct('singleLocationWidget', 'Locations - Single Location', $widget_ops);
 	}
 
+	// PHP4 style constructor for backwards compatibility
+	function singleLocationWidget() {
+		$this->__construct();
+	}
+	
 	function form($instance){
 		$instance = wp_parse_args( (array) $instance, array( 'title' => '', 'locationid' => null, 'show_location_image' => false, 'caption' => '', 'style' => 'small') );
 		$title = $instance['title'];
