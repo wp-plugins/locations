@@ -4,7 +4,7 @@ Plugin Name: Locations
 Plugin Script: locations.php
 Plugin URI: http://goldplugins.com/our-plugins/locations/
 Description: List your business' locations and show a map for each one.
-Version: 1.11.2
+Version: 1.12
 Author: GoldPlugins
 Author URI: http://goldplugins.com/
 
@@ -46,7 +46,13 @@ class LocationsPlugin extends GoldPlugin
 	}
 
 	function cast_decimal_precision( $array ) {
-		$array['where'] = str_replace('DECIMAL','DECIMAL(10,6)',$array['where']);
+		//RWG: check to be sure this hasn't already run, to prevent MySQL syntax errors	
+		//otherwise, for some reason, when store locator is used in the Widget, this runs twice
+		$pos = strpos($array['where'], 'DECIMAL(10,6)');
+		
+		if($pos === false){
+			$array['where'] = str_replace('DECIMAL','DECIMAL(10,6)',$array['where']);
+		}
 
 		return $array;
 	}
@@ -85,8 +91,8 @@ class LocationsPlugin extends GoldPlugin
 		add_filter( 'post_class', array($this, 'add_vcard_post_class') );
 		add_filter( 'the_title', array($this, 'add_vcard_title_class') );
 		
-		// add extra clause to queries that handle lat/lng
-		add_filter('get_meta_sql',array($this,'cast_decimal_precision'));			
+		//add extra clause to queries that handle lat/lng
+		add_filter('get_meta_sql',array($this,'cast_decimal_precision'));	
 		
 		/* Add any hooks that the base class has setup */
 		parent::add_hooks();
@@ -95,11 +101,15 @@ class LocationsPlugin extends GoldPlugin
 	function locations_register_widgets(){
 		require_once('widgets/single_location_widget.php');
 		require_once('widgets/locations_list_widget.php');
-		//require_once('widgets/store_locator_widget.php');
+		require_once('widgets/store_locator_widget.php');
 
 		register_widget( 'singleLocationWidget' );
 		register_widget( 'locationsListWidget' );
-		//register_widget( 'storeLocatorWidget' );
+		
+		//pro only
+		if($this->isValidKey()){
+			register_widget( 'storeLocatorWidget' );
+		}
 	}
 	
 	function single_location_content_filter($content)
@@ -269,7 +279,7 @@ class LocationsPlugin extends GoldPlugin
 
 	/* output a store locator search box, and/or a list of results */
 	function store_locator_shortcode($atts, $content = '')
-	{
+	{		
 		// merge any settings specified by the shortcode with our defaults
 		$defaults = array(	'caption' => '',
 							'style' =>	'small',
@@ -295,7 +305,7 @@ class LocationsPlugin extends GoldPlugin
 							'search_again_label' => 'Try Your Search Again:',
 							'search_again_class' => 'search_again',
 							'category_select_id' => 'location_category',
-							'category_select_label' => 'location_category',
+							'category_select_label' => 'Category',
 							'category_select_description' => 'Leave empty to show All Locations.',
 							'allow_multiple_categories' => true,
 							'radius_select_label' => 'Show Locations Within:',
@@ -319,6 +329,12 @@ class LocationsPlugin extends GoldPlugin
 			
 		// add the search form
 		if ( in_array($atts['search_box_location'], array('above', 'top', 'both')) ) {
+			
+			//add the search again label above the results and form, if the search box is also displayed above the results and a search has been performed
+			if (isset($_REQUEST['search_locations']) && isset($_REQUEST['your_location']) && strlen(trim($_REQUEST['your_location'])) > 0) {
+				$html .= sprintf('<h3 class="%s">%s</h3>', $atts['search_again_class'], $atts['search_again_label']);
+			}
+			
 			$current_search = isset($your_location) ? htmlentities($your_location) : '';
 			$html .= $this->store_locator_search_form_html($current_search, $atts['show_category_select'], $atts['show_search_radius']);
 		}
@@ -349,7 +365,6 @@ class LocationsPlugin extends GoldPlugin
 			
 			// generate the SERP (or the message saying "no results found")
 			$html .= $this->store_locator_results_html($your_location, $the_radius, $nearest_locations, $origin, $atts['show_search_results']);
-			$html .= sprintf('<h3 class="%s">%s</h3>', $atts['search_again_class'], $atts['search_again_label']);
 		}
 		else 
 		{
@@ -390,6 +405,10 @@ class LocationsPlugin extends GoldPlugin
 
 		// add the search form
 		if ( in_array($atts['search_box_location'], array('below', 'bottom', 'both')) ) {
+			//add the search again label below the results, if the search box is also displayed below the results and a search has been performed
+			if (isset($_REQUEST['search_locations']) && isset($_REQUEST['your_location']) && strlen(trim($_REQUEST['your_location'])) > 0) {
+				$html .= sprintf('<h3 class="%s">%s</h3>', $atts['search_again_class'], $atts['search_again_label']);
+			}
 			$current_search = isset($your_location) ? htmlentities($your_location) : '';
 			$html .= $this->store_locator_search_form_html($current_search, $atts['show_category_select'], $atts['show_search_radius']);
 		}
@@ -415,10 +434,13 @@ class LocationsPlugin extends GoldPlugin
 	}
 	
 	function get_starting_lat_lng($default_latitude, $default_longitude)
-	{
+	{		
 		$geo = $this->geolocate_current_visitor();
 		// if geocoding fails, fall back to default
 		if ( empty($geo) || empty($geo['latitude']) || empty($geo['longitude']) ) {
+			//cast geo to an array in case the geolocator returned false, to prevent warning
+			$geo = array();
+			
 			$geo['latitude'] = $default_latitude;
 			$geo['longitude'] = $default_longitude;
 		}
@@ -690,7 +712,7 @@ class LocationsPlugin extends GoldPlugin
 				}
 				
 				// add category select dropdown
-				if($show_category_select){
+				if($show_category_select){					
 					$html .= $this->get_search_category_select($location_categories);
 				}
 
@@ -785,14 +807,17 @@ class LocationsPlugin extends GoldPlugin
 		$html = sprintf('<div class="%s">', $this->shortcode_atts['input_wrapper_class']);
 			$html .= sprintf('<label for="%s">%s</label>', $this->shortcode_atts['category_select_id'], $select_label);	
 			$html .= sprintf('<select name="location_category[]" id="%s" %s>', $this->shortcode_atts['category_select_id'], $multi_str);
+			$html .= '<option value="">All Categories</option>';
 			foreach($location_categories as $cat) {
-				$html .= '<option value=" ' . $cat->slug . ' " ' . $selected . '>' . $cat->name . '</option>';
+				$html .= '<option value="' . $cat->slug . ' " ' . $selected . '>' . $cat->name . '</option>';
 			}
 			$html .= '</select>';
 			if (!empty($select_description)) {
 				$html .= sprintf('<p class="description">%s</p>', $select_description);
 			}
 		$html .= '</div>';
+		
+		return $html;
 	}
 	
 	/* Given a starting address, returns all locations within the specified radius, sorted by distance from the starting address (closest location first)
@@ -851,7 +876,7 @@ class LocationsPlugin extends GoldPlugin
 			'nopaging' => true,
 			'suppress_filters' => false
 		);
-
+		
 		// add category parameter to query if needed
 		if( !empty($category) ) {
 			$args['tax_query'] = array(

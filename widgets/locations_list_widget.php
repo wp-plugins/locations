@@ -37,6 +37,7 @@ class locationsListWidget extends WP_Widget
 		$style = $instance['style'];
 		$category = $instance['category'];
 		?>
+		<div class="gp_widget_form_wrapper">
 			<p><label for="<?php echo $this->get_field_id('title'); ?>">Widget Title: <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo esc_attr($title); ?>" /></label></p>
 			<p><input class="widefat" id="<?php echo $this->get_field_id('show_location_image'); ?>" name="<?php echo $this->get_field_name('show_location_image'); ?>" type="checkbox" value="1" <?php if($show_location_image){ ?>checked="CHECKED"<?php } ?>/><label for="<?php echo $this->get_field_id('show_location_image'); ?>">Show Featured Image</label></p>
 
@@ -48,8 +49,8 @@ class locationsListWidget extends WP_Widget
 				<option value="<?php echo $cat->term_id; ?>" <?php if($category == $cat->term_id):?>selected="SELECTED"<?php endif; ?>><?php echo htmlentities($cat->name); ?></option>
 				<?php endforeach; ?>
 			</select><br/><em><a href="<?php echo admin_url('edit-tags.php?taxonomy=location-categories&post_type=location'); ?>">Manage Categories</a></em></p>
-			
-			<?php
+		</div>
+		<?php
 	}
 
 	function update($new_instance, $old_instance){

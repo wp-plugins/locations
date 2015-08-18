@@ -38,6 +38,7 @@ class singleLocationWidget extends WP_Widget
 		$caption = $instance['caption'];		
 		$style = $instance['style'];
 		?>
+		<div class="gp_widget_form_wrapper">
 			<p><label for="<?php echo $this->get_field_id('title'); ?>">Widget Title: <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo esc_attr($title); ?>" /></label></p>
 			<?php
 				$locations = get_posts('post_type=location&posts_per_page=-1&nopaging=true');
@@ -52,7 +53,8 @@ class singleLocationWidget extends WP_Widget
 				 </select>
 			<p><input class="widefat" id="<?php echo $this->get_field_id('show_location_image'); ?>" name="<?php echo $this->get_field_name('show_location_image'); ?>" type="checkbox" value="1" <?php if($show_location_image){ ?>checked="CHECKED"<?php } ?>/><label for="<?php echo $this->get_field_id('show_location_image'); ?>">Show Featured Image</label></p>
 			<p><label for="<?php echo $this->get_field_id('caption'); ?>">Caption: <input class="widefat" id="<?php echo $this->get_field_id('caption'); ?>" name="<?php echo $this->get_field_name('caption'); ?>" type="text" value="<?php echo esc_attr($caption); ?>" /></label></p>
-			<?php
+		</div>
+		<?php
 	}
 
 	function update($new_instance, $old_instance){
