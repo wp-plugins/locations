@@ -65,7 +65,8 @@
 }
 
 .locations .location .phone-wrapper,
-.locations .location .fax-wrapper
+.locations .location .fax-wrapper,
+.locations .location .info-wrapper
 {
 	margin-bottom: 4px;
 	border-bottom: 1px solid #eee;
@@ -75,7 +76,7 @@
 .locations .location .fax-wrapper strong
 {
 	display: inline-block;
-	width: 65px;
+	width: 70px;
 }
 
 .locations .location .phone-wrapper .num,
@@ -87,6 +88,10 @@
 
 .locations .location .locations_gmap{
 	margin: 10px 0;
+}
+
+.locations .location .info-wrapper ul{
+	padding: 0 0 0 20px;
 }
 
 /* Store Locator */

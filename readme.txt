@@ -3,7 +3,7 @@ Contributors: ghuger, richardgabriel
 Tags: locations, business locations, business maps, maps, business address map
 Requires at least: 3.0.1
 Tested up to: 4.3
-Stable tag: 1.12
+Stable tag: 1.13
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -123,13 +123,17 @@ https://developers.google.com/maps/documentation/javascript/tutorial#api_key
 == Screenshots ==
 
 1. This is the Add New Location Page.
-2. This is the List of Locations - from here you can Edit or Delete a Location.
-3. This is a demo of a Location from the user side, with a map displayed.
+2. This is a demo of a Location from the user side, with a map displayed.
+3. This is the List of Locations - from here you can Edit or Delete a Location.
 4. This is the Single Location Widget.
 5. This is the List of Locations Widget.
 6. This is the Store Locator Widget.
 
 == Changelog ==
+
+= 1.13 =
+* Adds Free Form text field to Locations.
+* Interface Updates.
 
 = 1.12 =
 * Adds Store Locator Widget.
@@ -214,4 +218,4 @@ https://developers.google.com/maps/documentation/javascript/tutorial#api_key
 
 == Upgrade Notice ==
 
-* 1.12: Store Locator Widget, Updates
+* 1.13: Adds Free Form text field to Locations, admin updates.

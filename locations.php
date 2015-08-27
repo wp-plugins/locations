@@ -4,7 +4,7 @@ Plugin Name: Locations
 Plugin Script: locations.php
 Plugin URI: http://goldplugins.com/our-plugins/locations/
 Description: List your business' locations and show a map for each one.
-Version: 1.12
+Version: 1.13
 Author: GoldPlugins
 Author URI: http://goldplugins.com/
 
@@ -94,9 +94,57 @@ class LocationsPlugin extends GoldPlugin
 		//add extra clause to queries that handle lat/lng
 		add_filter('get_meta_sql',array($this,'cast_decimal_precision'));	
 		
+		//add Settings link to the plugin list
+		$plugin = plugin_basename(__FILE__);
+		add_filter( "plugin_action_links_{$plugin}", array($this, 'add_settings_link_to_plugin_action_links') );
+		add_filter( 'plugin_row_meta', array($this, 'add_custom_links_to_plugin_description'), 10, 2 );	
+		
+		// add our custom meta boxes
+		add_action( 'admin_menu', array($this, 'add_meta_boxes'));
+		
 		/* Add any hooks that the base class has setup */
 		parent::add_hooks();
 	}
+	
+	//add an inline link to the settings page, before the "deactivate" link
+	function add_settings_link_to_plugin_action_links($links) { 
+	  $settings_link = '<a href="edit.php?post_type=location&page=locations-settings">Settings</a>';
+	  array_unshift($links, $settings_link); 
+	  return $links; 
+	}
+
+	// add inline links to our plugin's description area on the Plugins page
+	function add_custom_links_to_plugin_description($links, $file) {
+
+		/** Get the plugin file name for reference */
+		$plugin_file = plugin_basename( __FILE__ );
+	 
+		/** Check if $plugin_file matches the passed $file name */
+		if ( $file == $plugin_file )
+		{
+			$new_links['settings_link'] = '<a href="edit.php?post_type=location&page=locations-settings">Settings</a>';
+			$new_links['support_link'] = '<a href="https://goldplugins.com/contact/?utm-source=plugin_menu&utm_campaign=support&utm_banner=locations-plugin-menu" target="_blank">Get Support</a>';
+				
+			if(!$this->isValidKey()){
+				$new_links['upgrade_to_pro'] = '<a href="https://goldplugins.com/our-plugins/locations/upgrade-to-locations-pro/?utm_source=plugin_menu&utm_campaign=upgrade" target="_blank">Upgrade to Pro</a>';
+			}
+			
+			$links = array_merge( $links, $new_links);
+		}
+		return $links; 
+	}
+	
+	//add meta box for single location shortcode
+	function add_meta_boxes(){
+		add_meta_box( 'single_location_shortcode', 'Shortcodes', array($this,'display_shortcodes_meta_box'), 'location', 'side', 'default' );
+	}
+	
+	// Displays a meta box with the shortcodes to display the current location
+	function display_shortcodes_meta_box() {
+		global $post;
+		echo "Add this shortcode to any page where you'd like to <strong>display</strong> this Location:<br />";
+		echo "<textarea>[locations id=\"{$post->ID}\"]</textarea>";
+	}//add Custom CSS
 	
 	function locations_register_widgets(){
 		require_once('widgets/single_location_widget.php');
@@ -136,9 +184,7 @@ class LocationsPlugin extends GoldPlugin
 		$customFields[] = array('name' => 'zipcode', 'title' => 'Zipcode', 'description' => 'Example: 27601', 'type' => 'text');
 		$customFields[] = array('name' => 'phone', 'title' => 'Phone', 'description' => 'Primary phone number of this location, example: 919-555-3333', 'type' => 'text');
 		$customFields[] = array('name' => 'website_url', 'title' => 'Website', 'description' => 'Website URL address for this location, example: http://goldplugins.com', 'type' => 'text');
-		$customFields[] = array('name' => 'show_map', 'title' => 'Show Google Map', 'description' => 'If checked, a Google Map with a marker at the above address will be displayed.', 'type' => 'checkbox');
-		$customFields[] = array('name' => 'latitude', 'title' => 'Latitude', 'description' => 'Latitude of this location. You can leave this blank, and we will calculate it for you based on the address you entered (with the Google Maps geocoder).', 'type' => 'text');
-		$customFields[] = array('name' => 'longitude', 'title' => 'Longitude', 'description' => 'Longitude of this location. You can ignore this field, and we will calculate it for you based on the address you entered (with the Google Maps geocoder).', 'type' => 'text');
+
 		$showEmail = get_option('loc_p_show_email', true);
 		if ($showEmail) {
 			$customFields[] = array('name' => 'email', 'title' => 'Email', 'description' => 'Email address for this location, example: shopname@ourbrand.com', 'type' => 'text');
@@ -148,6 +194,15 @@ class LocationsPlugin extends GoldPlugin
 		if ($showFax) {
 			$customFields[] = array('name' => 'fax', 'title' => 'Fax', 'description' => 'Fax number of this location, example: 919-555-3344', 'type' => 'text');
 		}
+		
+		$showInfo = get_option('loc_p_show_info', true);
+		if ($showInfo) {
+			$customFields[] = array('name' => 'info_box', 'title' => 'Additional Info', 'description' => 'Free form text area for Additional Info, such as Hours of Operation.  HTML is allowed.', 'type' => 'textarea');
+		}
+		
+		$customFields[] = array('name' => 'show_map', 'title' => 'Show Google Map', 'description' => 'If checked, a Google Map with a marker at the above address will be displayed.', 'type' => 'checkbox');
+		$customFields[] = array('name' => 'latitude', 'title' => 'Latitude', 'description' => 'Latitude of this location. You can leave this blank, and we will calculate it for you based on the address you entered (with the Google Maps geocoder).', 'type' => 'text');
+		$customFields[] = array('name' => 'longitude', 'title' => 'Longitude', 'description' => 'Longitude of this location. You can ignore this field, and we will calculate it for you based on the address you entered (with the Google Maps geocoder).', 'type' => 'text');
 
 		$this->add_custom_post_type($postType, $customFields);
 		
@@ -1053,9 +1108,11 @@ class LocationsPlugin extends GoldPlugin
 		$phone = $this->get_option_value($loc->ID, 'phone','');
 		$fax = $this->get_option_value($loc->ID, 'fax','');
 		$email = $this->get_option_value($loc->ID, 'email','');
+		$info_box = $this->get_option_value($loc->ID, 'info_box','');
 		$website_url = $this->get_option_value($loc->ID, 'website_url','');
 		$showEmail = get_option('loc_p_show_email', true);
-		$showFax = get_option('loc_p_show_fax_number', true);		
+		$showFax = get_option('loc_p_show_fax_number', true);
+		$showInfo = get_option('loc_p_show_info', true);				
 		
 		// load any needed atts that came from the shortcode
 		$show_photo = isset($atts['show_photos']) ? $atts['show_photos'] : 'true';
@@ -1096,7 +1153,10 @@ class LocationsPlugin extends GoldPlugin
 		}
 		if (strlen($fax) > 1 && $showFax) {
 			$html .= '<div class="fax-wrapper"><strong>Fax:</strong> <span class="num fax">' . htmlentities($fax) . '</span></div>';
-		}				
+		}	
+		if (strlen($info_box) > 1 && $showInfo) {
+			$html .= '<div class="info-wrapper">' . $info_box . '</div>';
+		}			
 		
 		// add links for Map, Directions, Email, and Website
 		$html .= $this->build_links_html($street_address, $street_address_line_2, $city, $state, $zipcode, $email, $website_url, $add_map);
@@ -1356,8 +1416,9 @@ class LocationsPlugin extends GoldPlugin
 		
 		$plugin_options = array();
 		$plugin_options[] = array('name' => 'loc_p_google_maps_api_key', 'label' => 'Google Geocoder API Key', 'desc' => 'Without a Google Geocoder API key, your plugin may not work. Get your API key <a href="https://developers.google.com/maps/documentation/geocoding/#api_key" target="_blank">here</a>.' );
-		$plugin_options[] = array('name' => 'loc_p_show_fax_number', 'label' => 'Show Fax Number', 'type' => 'checkbox', 'default' => '1');
-		$plugin_options[] = array('name' => 'loc_p_show_email', 'label' => 'Show Email', 'type' => 'checkbox', 'default' => '1');
+		$plugin_options[] = array('name' => 'loc_p_show_fax_number', 'label' => 'Show Fax Number', 'type' => 'checkbox', 'default' => '1', 'desc' => 'If checked, the Fax Number field will be displayed on the Add and Edit Location screens, as well as on the front end location display.');
+		$plugin_options[] = array('name' => 'loc_p_show_email', 'label' => 'Show Email', 'type' => 'checkbox', 'default' => '1', 'desc' => 'If checked, the Email field will be displayed on the Add and Edit Location screens, as well as on the front end location display.');
+		$plugin_options[] = array('name' => 'loc_p_show_info', 'label' => 'Show Info Box', 'type' => 'checkbox', 'default' => '1', 'desc' => 'If checked, the Additional Info field will be displayed on the Add and Edit Location screens, as well as on the front end location display.');
 		$plugin_options[] = array('name' => 'loc_p_show_map', 
 						   'label' => 'Show Google Maps',
 						   'desc' => '',
@@ -1391,19 +1452,17 @@ class LocationsPlugin extends GoldPlugin
 						update_option($name, $val);
 					}
 				}
-			}
-			else
-			{				
-				// save registration keys if provided
-				$reg_keys = array('loc_p_registration_api_key', 'loc_p_registration_website_url', 'loc_p_registration_email');
-				foreach($reg_keys as $name) {
-					if (isset($_POST[$name])) {
-						$val = esc_attr($_POST[$name]);
-						update_option($name, $val);
-					}
+			}			
+				
+			// save registration keys if provided
+			$reg_keys = array('loc_p_registration_api_key', 'loc_p_registration_website_url', 'loc_p_registration_email');
+			foreach($reg_keys as $name) {
+				if (isset($_POST[$name])) {
+					$val = esc_attr($_POST[$name]);
+					update_option($name, $val);
 				}
-				$this->isValidKey(true);				
 			}
+			$this->isValidKey(true);
 		}
 
 		// load the current setting values from the database (normal options)
@@ -1439,20 +1498,6 @@ class LocationsPlugin extends GoldPlugin
 				</table>
 				<p class="submit"><input type="submit" value="Save Changes" class="button button-primary" id="submit" name="submit"></p>				
 				<h3>Registration Settings</h3>
-				<style type="text/css">
-				.locations_registered {
-					background-color: #90EE90;
-					font-weight: bold;
-					padding: 20px;
-					width: 860px;
-				}
-				.locations_not_registered {
-					background-color: #FF8C00;
-					font-weight: bold;
-					padding: 20px;
-					width: 860px;
-				}
-				</style>
 				<?php if($this->isValidKey()): ?>	
 				<p class="locations_registered">Your plugin is succesfully registered and activated!</p>
 				<?php else: ?>
@@ -1475,19 +1520,27 @@ class LocationsPlugin extends GoldPlugin
 				<?php endif; ?>
 				<input type="hidden" name="update_settings" value="true" />				
 			</form>
-			<form method="POST" action="" enctype="multipart/form-data">
-				<h3>Locations Importer</h3>	
-				<?php 
-					//CSV Importer
-					$importer = new LocationsPlugin_Importer($this);
-					$importer->csv_importer(); // outputs form and handles input. TODO: break into 2 functions (one to show form, one to process input)
-				?>
-				<h3>Locations Exporter</h3>	
-				<?php 
-					//CSV Exporter
-					LocationsPlugin_Exporter::output_form();
-				?>
-			</form>
+			
+			<h3>Import / Export Locations from CSV</h3>
+			<div class="gp_csv">
+				<form method="POST" action="" enctype="multipart/form-data">					
+					<fieldset>
+						<legend>Import Locations</legend>
+						<?php 
+							//CSV Importer
+							$importer = new LocationsPlugin_Importer($this);
+							$importer->csv_importer(); // outputs form and handles input. TODO: break into 2 functions (one to show form, one to process input)
+						?>
+					</fieldset>
+				</form>
+				<fieldset>
+					<legend>Export Locations</legend>
+					<?php 
+						//CSV Exporter
+						LocationsPlugin_Exporter::output_form();
+					?>
+				</fieldset>
+			</div>
 		</div>
 <?php		
 	}
@@ -1571,106 +1624,15 @@ class LocationsPlugin extends GoldPlugin
 			}
 		});
 		</script>
-		<!-- Begin MailChimp Signup Form -->
-		<style type="text/css">
-			/* MailChimp Form Embed Code - Slim - 08/17/2011 */
-			#mc_embed_signup form {display:block; position:relative; text-align:left; padding:10px 0 10px 3%}
-			#mc_embed_signup h2 {font-weight:bold; padding:0; margin:15px 0; font-size:1.4em;}
-			#mc_embed_signup input {border:1px solid #999; -webkit-appearance:none;}
-			#mc_embed_signup input[type=checkbox]{-webkit-appearance:checkbox;}
-			#mc_embed_signup input[type=radio]{-webkit-appearance:radio;}
-			#mc_embed_signup input:focus {border-color:#333;}
-			#mc_embed_signup .button {clear:both; background-color: #aaa; border: 0 none; border-radius:4px; color: #FFFFFF; cursor: pointer; display: inline-block; font-size:15px; font-weight: bold; height: 32px; line-height: 32px; margin: 0 5px 10px 0; padding:0; text-align: center; text-decoration: none; vertical-align: top; white-space: nowrap; width: auto;}
-			#mc_embed_signup .button:hover {background-color:#777;}
-			#mc_embed_signup .small-meta {font-size: 11px;}
-			#mc_embed_signup .nowrap {white-space:nowrap;}     
-			#mc_embed_signup .clear {clear:none; display:inline;}
-
-			#mc_embed_signup h3 { color: #008000; display:block; font-size:19px; padding-bottom:10px; font-weight:bold; margin: 0 0 10px;}
-			#mc_embed_signup .explain {
-				color: #808080;
-				width: 600px;
-			}
-			#mc_embed_signup label {
-				color: #000000;
-				display: block;
-				font-size: 15px;
-				font-weight: bold;
-				padding-bottom: 10px;
-			}
-			#mc_embed_signup input.email {display:block; padding:8px 0; margin:0 4% 10px 0; text-indent:5px; width:58%; min-width:130px;}
-
-			#mc_embed_signup div#mce-responses {float:left; top:-1.4em; padding:0em .5em 0em .5em; overflow:hidden; width:90%;margin: 0 5%; clear: both;}
-			#mc_embed_signup div.response {margin:1em 0; padding:1em .5em .5em 0; font-weight:bold; float:left; top:-1.5em; z-index:1; width:80%;}
-			#mc_embed_signup #mce-error-response {display:none;}
-			#mc_embed_signup #mce-success-response {color:#529214; display:none;}
-			#mc_embed_signup label.error {display:block; float:none; width:auto; margin-left:1.05em; text-align:left; padding:.5em 0;}		
-			#mc_embed_signup{background:#fff; clear:left; font:14px Helvetica,Arial,sans-serif; }
-				#mc_embed_signup{    
-						background-color: white;
-						border: 1px solid #DCDCDC;
-						clear: left;
-						color: #008000;
-						font: 14px Helvetica,Arial,sans-serif;
-						margin-top: 10px;
-						margin-bottom: 0px;
-						max-width: 800px;
-						padding: 5px 12px 0px;
-			}
-			#mc_embed_signup form{padding: 10px}
-
-			#mc_embed_signup .special-offer {
-				color: #808080;
-				margin: 0;
-				padding: 0 0 3px;
-				text-transform: uppercase;
-			}
-			#mc_embed_signup .button {
-			  background: #5dd934;
-			  background-image: -webkit-linear-gradient(top, #5dd934, #549e18);
-			  background-image: -moz-linear-gradient(top, #5dd934, #549e18);
-			  background-image: -ms-linear-gradient(top, #5dd934, #549e18);
-			  background-image: -o-linear-gradient(top, #5dd934, #549e18);
-			  background-image: linear-gradient(to bottom, #5dd934, #549e18);
-			  -webkit-border-radius: 5;
-			  -moz-border-radius: 5;
-			  border-radius: 5px;
-			  font-family: Arial;
-			  color: #ffffff;
-			  font-size: 20px;
-			  padding: 10px 20px 10px 20px;
-			  line-height: 1.5;
-			  height: auto;
-			  margin-top: 7px;
-			  text-decoration: none;
-			}
-
-			#mc_embed_signup .button:hover {
-			  background: #65e831;
-			  background-image: -webkit-linear-gradient(top, #65e831, #5dd934);
-			  background-image: -moz-linear-gradient(top, #65e831, #5dd934);
-			  background-image: -ms-linear-gradient(top, #65e831, #5dd934);
-			  background-image: -o-linear-gradient(top, #65e831, #5dd934);
-			  background-image: linear-gradient(to bottom, #65e831, #5dd934);
-			  text-decoration: none;
-			}
-			#signup_wrapper {
-				max-width: 800px;
-				margin-bottom: 20px;
-			}
-			#signup_wrapper .u_to_p
-			{
-				font-size: 10px;
-				margin: 0;
-				padding: 2px 0 0 3px;				
-			]
-		</style>
+		
 		<div id="signup_wrapper">
+			<div class="topper">
+				<h3>Save 20% on Locations Pro!</h3>
+				<p class="pitch">Sign-up for our newsletter, and we’ll send you a coupon for 20% off your upgrade to Locations Pro!</p>
+			</div>
 			<div id="mc_embed_signup">
 				<!--<form action="http://illuminatikarate.us2.list-manage2.com/subscribe/post?u=403e206455845b3b4bd0c08dc&amp;id=6ad78db648" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>-->
 				<form action="https://goldplugins.com/atm/atm.php?u=403e206455845b3b4bd0c08dc&amp;id=6ad78db648" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
-					<p class="special-offer">Special Offer:</p>
-					<h3>Sign-up for our mailing list now, and we'll give you a discount on Locations Pro!</h3>
 					<div class="fields_wrapper">
 						<label for="mce-NAME">Your Name:</label>
 						<input type="text" value="<?php echo (!empty($current_user->display_name) ?  $current_user->display_name : ''); ?>" name="NAME" class="name" id="mce-NAME" placeholder="Your Name">
@@ -1686,7 +1648,28 @@ class LocationsPlugin extends GoldPlugin
 					<input type="hidden" id="mc-upgrade-link-per" value="https://goldplugins.com/purchase/locations-pro/single?promo=newsub20" />
 					<input type="hidden" id="mc-upgrade-link-biz" value="https://goldplugins.com/purchase/locations-pro/business?promo=newsub20" />
 					<input type="hidden" id="mc-upgrade-link-dev" value="https://goldplugins.com/purchase/locations-pro/developer?promo=newsub20" />
+					<div class="features">
+					<strong>When you upgrade, you'll instantly unlock:</strong>
+						<ul>
+							<li>Advanced Store Locator</li>
+							<li>Outstanding support from our developers</li>
+							<li>Remove all banners from the admin area</li>
+							<li>And more! We add new features regularly.</li>
+						</ul>
+					</div>
 					
+					<div class="customer_testimonial">
+							<div class="stars">
+								<span class="dashicons dashicons-star-filled"></span>
+								<span class="dashicons dashicons-star-filled"></span>
+								<span class="dashicons dashicons-star-filled"></span>
+								<span class="dashicons dashicons-star-filled"></span>
+								<span class="dashicons dashicons-star-filled"></span>
+							</div>
+							“<strong>It works like a dream.</strong> Simple and easy to setup. It presents the information in a neat & tidy, and visually appealing, manner.”
+							<p class="author">&mdash; maxhumayun <a href="https://wordpress.org/support/topic/amazing-plugin-368" target="_blank">via WordPress.org</a></p>
+					</div>
+				
 					<input type="hidden" id="gold_plugins_already_subscribed" name="gold_plugins_already_subscribed" value="0" />
 				</form>
 			</div>
